@@ -23,12 +23,14 @@ class Packager(command_wrapper.Wrapper):
         match(platform.system()):
             case "Darwin":
                 self.__aapt = Configuration.library("aapt-osx")
+                self.__zipalign = Configuration.library("zipalign")
 
             case "Windows":
                 self.__aapt = Configuration.library("aapt.exe")
                 self.__zipalign = Configuration.library("zipalign.exe")
             case _:
                 self.__aapt = Configuration.library("aapt")
+                self.__zipalign = Configuration.library("zipalign")
 
     def apk_path(self, name):
         return os.path.join(self.__wd, name + ".apk")
