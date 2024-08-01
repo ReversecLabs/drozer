@@ -54,7 +54,7 @@ class AgentManager(cli.Base):
         # Apktool v2.2.4 generates a malformed YAML file when unpacking apks
         # See https://github.com/iBotPeaches/Apktool/issues/1610
         # This workaround generates a valid YAML document and prevents agent building from failing
-        yaml_doc = yaml.load(open(packager.apktool_yml_path()).read().replace('!!brut.androlib.meta.MetaInfo',''))
+        yaml_doc = yaml.load(open(packager.apktool_yml_path()).read().replace('!!brut.androlib.meta.MetaInfo',''), Loader=yaml.FullLoader)
         m_ver = yaml_doc['versionInfo']['versionName']
         #m_ver = m.version()
         c_ver = meta.version.__str__()
@@ -67,7 +67,7 @@ class AgentManager(cli.Base):
         for p in permissions:
             m.add_permission(p)
 
-        for name, protectionLevel in defined_permissions.iteritems():
+        for name, protectionLevel in defined_permissions.items():
             m.define_permission(name, protectionLevel)
 
         m.write()
