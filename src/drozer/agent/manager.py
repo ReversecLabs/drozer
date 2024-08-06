@@ -1,4 +1,3 @@
-import itertools
 from WithSecure.common import cli
 import yaml
 from drozer import android, meta
@@ -18,7 +17,7 @@ class AgentManager(cli.Base):
         self._parser.add_argument("--no-gui", action="store_true", default=False, help="deprecated: rather use --rogue. create an agent with no GUI")
         self._parser.add_argument("--granular", action="store_true", default=False, help="don't request all permissions when building GUI-less agent")
         self._parser.add_argument("--permission", "-p", nargs="+", help="add permissions to the Agent manifest")
-        self._parser.add_argument("--define-permission", "-d", metavar="name protectionLevel", nargs="+", help="define a permission and protectionLevel in the Agent manifest")
+        self._parser.add_argument("--define-permission", "-d", metavar="name:protectionLevel", nargs="+", help="define a permission and protectionLevel in the Agent manifest")
         self._parser.add_argument("--server", default=None, metavar="HOST[:PORT]", help="specify the address and port of the drozer server")
         
     def do_build(self, arguments):
@@ -45,8 +44,8 @@ class AgentManager(cli.Base):
             permissions = permissions.union(arguments.permission)
 
         defined_permissions = {}
-        if arguments.define_permission != None:
-            defined_permissions = dict(itertools.izip_longest(*[iter(arguments.define_permission)] * 2, fillvalue=""))
+        if arguments.define_permission is not None:
+            defined_permissions = dict(map(lambda x: x.split(':'), arguments.define_permission))
 
         # add extra permissions to the Manifest file
         m = manifest.Manifest(packager.manifest_path()) 
