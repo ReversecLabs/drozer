@@ -51,6 +51,31 @@ class Manifest(object):
         node.attrib["ns0:protectionLevel"] = protectionLevel
         
         self.__doc.insert(len(list(self.__doc)) - 1, node)
+
+
+    def set_name(self, name):
+        full_name = "com.withsecure." + name
+        dr = "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+
+        # set manifest package name
+        self.__doc.attrib["package"] = full_name
+
+        # rename uses-permission for DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+        na_attrib_name = "{http://schemas.android.com/apk/res/android}name"
+        for node in filter(lambda p: dr in p.attrib[na_attrib_name],
+                           self.__doc.findall(f".//*[@{na_attrib_name}]")):
+            node.attrib[na_attrib_name] = full_name + "." + dr
+
+        # replace all authorities
+        au_attrib_name = "{http://schemas.android.com/apk/res/android}authorities"
+        for node in self.__doc.findall(f".//*[@{au_attrib_name}]"):
+            val = node.attrib[au_attrib_name]
+            node.attrib[au_attrib_name] = val.replace("com.withsecure.dz", full_name)
+
+        # set launcher name
+        launcher_activity = self.__doc.find("application/activity[@{http://schemas.android.com/apk/res/android}name='com.WithSecure.dz.activities.MainActivity']")
+        if launcher_activity is not None:
+            launcher_activity.attrib["{http://schemas.android.com/apk/res/android}label"] = name
         
     def permissions(self):
         return list(map(lambda x: x.attrib['{http://schemas.android.com/apk/res/android}name'],

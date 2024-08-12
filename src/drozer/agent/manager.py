@@ -19,7 +19,8 @@ class AgentManager(cli.Base):
         self._parser.add_argument("--permission", "-p", nargs="+", help="add permissions to the Agent manifest")
         self._parser.add_argument("--define-permission", "-d", metavar="name:protectionLevel", nargs="+", help="define a permission and protectionLevel in the Agent manifest")
         self._parser.add_argument("--server", default=None, metavar="HOST[:PORT]", help="specify the address and port of the drozer server")
-        
+        self._parser.add_argument("--name", default=None, help="set package name to allow multiple instances")
+
     def do_build(self, arguments):
         """build a drozer Agent"""
 
@@ -61,6 +62,9 @@ class AgentManager(cli.Base):
 
         for name, protectionLevel in defined_permissions.items():
             m.define_permission(name, protectionLevel)
+
+        if arguments.name is not None:
+            m.set_name(arguments.name)
 
         built = packager.package()
         
