@@ -28,10 +28,8 @@ class AgentManager(cli.Base):
         packager.unpack(source)
         
         if arguments.rogue or arguments.no_gui:
-            e = manifest.Endpoint(packager.endpoint_path())
-            if arguments.server != None:
-                e.put_server(arguments.server)
-            e.write()
+            if arguments.server is not None:
+                packager.get_config_file().put_server(arguments.server)
             
             if not arguments.granular:
                 permissions = set(android.permissions)
@@ -40,7 +38,7 @@ class AgentManager(cli.Base):
         else:
             permissions = set([])
         
-        if arguments.permission != None:
+        if arguments.permission is not None:
             permissions = permissions.union(arguments.permission)
 
         defined_permissions = {}
@@ -48,14 +46,9 @@ class AgentManager(cli.Base):
             defined_permissions = dict(map(lambda x: x.split(':'), arguments.define_permission))
 
         # add extra permissions to the Manifest file
-        m = manifest.Manifest(packager.manifest_path()) 
+        m = packager.get_manifest_file()
 
-        # Apktool v2.2.4 generates a malformed YAML file when unpacking apks
-        # See https://github.com/iBotPeaches/Apktool/issues/1610
-        # This workaround generates a valid YAML document and prevents agent building from failing
-        yaml_doc = yaml.load(open(packager.apktool_yml_path()).read().replace('!!brut.androlib.meta.MetaInfo',''), Loader=yaml.FullLoader)
-        m_ver = yaml_doc['versionInfo']['versionName']
-        #m_ver = m.version()
+        m_ver = packager.get_apktool_file()['versionInfo']['versionName']
         c_ver = meta.version.__str__()
         
         if m_ver != c_ver:
@@ -68,8 +61,6 @@ class AgentManager(cli.Base):
 
         for name, protectionLevel in defined_permissions.items():
             m.define_permission(name, protectionLevel)
-
-        m.write()
 
         built = packager.package()
         
