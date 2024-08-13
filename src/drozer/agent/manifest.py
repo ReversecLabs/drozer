@@ -5,9 +5,12 @@ class Endpoint(object):
     def __init__(self, path):
         self.__path = path
 
-        with open(self.__path, 'w+') as file:
-            lines = file.readlines()
-        self.data = dict(map(lambda x: x.split(":"), filter(lambda p: p.find(":") > -1, lines)))
+        try:
+            with open(self.__path, 'r') as file:
+                lines = file.readlines()
+                self.data = dict(map(lambda x: x.split(":"), filter(lambda p: p.find(":") > -1, lines)))
+        except FileNotFoundError:
+            self.data = dict()
     
     def put_server(self, server):
         if isinstance(server, tuple):
@@ -27,6 +30,7 @@ class Endpoint(object):
     def write(self):
         with open(self.__path, 'w') as file:
             file.write("drozer Config\n")
+            file.write("-------------\n")
             for key, value in self.data.items():
                 file.write(f"{key}:{value}\n")
 

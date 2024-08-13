@@ -14,7 +14,7 @@ class Packager(command_wrapper.Wrapper):
     __java = Configuration.executable("java")
     __sign_apk = Configuration.library("apksigner.jar")
 
-    __endpoint = "startup_config.txt"
+    __endpoint = "config.txt"
     __manifest = "AndroidManifest.xml"
     __apktool_yml = "apktool.yml"
 
@@ -90,7 +90,7 @@ class Packager(command_wrapper.Wrapper):
     def unpack(self, name):
         apk_path = Configuration.library(name + ".apk")
         if apk_path is None:
-            raise RuntimeError("could not locate " + name + ".apk")
+            raise RuntimeError("could not locate " + name + ".apk in library")
 
         if self._execute([self.__java, "-jar", self.__apk_tool, "decode", apk_path,
                           "-o", self.source_dir()]) != 0:
