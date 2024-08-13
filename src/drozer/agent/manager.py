@@ -65,6 +65,9 @@ class AgentManager(cli.Base):
         if arguments.name is not None:
             m.set_name(arguments.name)
 
+        if arguments.theme is not None:
+            packager.get_config_file().put("theme", arguments.theme)
+
         built = packager.package()
         
         print("Done:", built)
