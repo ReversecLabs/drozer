@@ -298,7 +298,10 @@ class Session(cmd.Cmd):
         include_unsupported = False
         if "--unsupported" in argv:
             argv.remove("--unsupported")
-            
+            include_unsupported = True
+
+        if "--all" in argv:
+            argv.remove("--all")
             include_unsupported = True
         
         term = len(argv) > 0 and argv[0] or None
