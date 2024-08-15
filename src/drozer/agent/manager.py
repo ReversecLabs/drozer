@@ -23,6 +23,7 @@ class AgentManager(cli.Base):
         self._parser.add_argument("--name", "-n", default=None, help="set package name to allow multiple instances")
         self._parser.add_argument("--theme", "-t", default=None, help="set app theme (red/blue/purple)")
         self._parser.add_argument("--out", "-o", default=None, help="set output file")
+        self._parser.add_argument("--file", "-f", default=None, help="apk file for use with set_apk")
 
     def do_build(self, arguments):
         """build a drozer Agent"""
@@ -79,3 +80,13 @@ class AgentManager(cli.Base):
             print("Done:", out)
         else:
             print("Done:", built)
+
+    def do_set_apk(self, arguments):
+        if arguments.file is None:
+            print("--file argument is required when using set_apk")
+            return
+
+        name = (arguments.rogue or arguments.no_gui) and "rogue-agent" or "standard-agent"
+        libpath = Configuration.library(name + ".apk")
+
+        shutil.copyfile(arguments.file, libpath)
