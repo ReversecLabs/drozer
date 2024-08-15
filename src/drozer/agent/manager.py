@@ -1,4 +1,6 @@
-from WithSecure.common import cli
+import shutil
+
+from WithSecure.common.cli_fancy import *
 from drozer import android, meta
 from drozer.agent import builder, manifest
 
@@ -18,7 +20,9 @@ class AgentManager(cli.Base):
         self._parser.add_argument("--permission", "-p", nargs="+", help="add permissions to the Agent manifest")
         self._parser.add_argument("--define-permission", "-d", metavar="name:protectionLevel", nargs="+", help="define a permission and protectionLevel in the Agent manifest")
         self._parser.add_argument("--server", default=None, metavar="HOST[:PORT]", help="specify the address and port of the drozer server")
-        self._parser.add_argument("--name", default=None, help="set package name to allow multiple instances")
+        self._parser.add_argument("--name", "-n", default=None, help="set package name to allow multiple instances")
+        self._parser.add_argument("--theme", "-t", default=None, help="set app theme (red/blue/purple)")
+        self._parser.add_argument("--out", "-o", default=None, help="set output file")
 
     def do_build(self, arguments):
         """build a drozer Agent"""
@@ -69,5 +73,9 @@ class AgentManager(cli.Base):
             packager.get_config_file().put("theme", arguments.theme)
 
         built = packager.package()
-        
-        print("Done:", built)
+
+        if arguments.out is not None:
+            out = shutil.copy(built, arguments.out)
+            print("Done:", out)
+        else:
+            print("Done:", built)
