@@ -10,7 +10,7 @@ from WithSecure.common import text
 # src: http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
 
 def format_dict(values, left_margin=0):
-    width = {'gutter': 2, 'left_margin': left_margin, 'total': get_size()[0] - left_margin}
+    width = {'gutter': 2, 'left_margin': left_margin, 'total': get_size()[0] - left_margin - 1}
     width['key'] = min([max([len(k) for k in values.keys()] + [0]), width['total'] / 3])
     width['value'] = width['total'] - (width['gutter'] + width['key'])
 
