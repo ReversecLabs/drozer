@@ -22,7 +22,8 @@ class ModuleCollection(object):
         if contains != None:
             modules = filter(lambda m: m.find(contains.lower()) >= 0, modules)
         if permissions != None:
-            modules = filter(lambda m: len(set(self.get(m).permissions).difference(permissions)) == 0, modules)
+            p = set(permissions)
+            modules = filter(lambda m: set(self.get(m).permissions).issubset(p), modules)
         if prefix != None:
             modules = filter(lambda m: m.startswith(prefix), modules)
         if module_type =="payload" and exploit is not None:
