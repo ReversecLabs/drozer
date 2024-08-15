@@ -45,14 +45,14 @@ class Manifest(object):
     
     def add_permission(self, name):
         node = xml.Element('uses-permission')
-        node.attrib["ns0:name"] = name
+        node.attrib["{http://schemas.android.com/apk/res/android}name"] = name
         
         self.__doc.insert(len(list(self.__doc)) - 1, node)
 
     def define_permission(self, name, protectionLevel):
         node = xml.Element('permission')
-        node.attrib["ns0:name"] = name
-        node.attrib["ns0:protectionLevel"] = protectionLevel
+        node.attrib["{http://schemas.android.com/apk/res/android}name"] = name
+        node.attrib["{http://schemas.android.com/apk/res/android}protectionLevel"] = protectionLevel
         
         self.__doc.insert(len(list(self.__doc)) - 1, node)
 
