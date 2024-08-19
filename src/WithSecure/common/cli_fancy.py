@@ -38,7 +38,8 @@ class FancyBase(cli.Base):
 
         FancyBase.__ansi_print(cursor.prev_line(max_options), cursor.goto_x(offset_x + 1), cursor.erase_line(0),
                                input_str)
-        # printing built string last ensures that cursor is left at correct pos
+
+    # printing built string last ensures that cursor is left at correct pos
 
     @staticmethod
     def __print__cleanup(input_str, max_options, offset_x):
@@ -49,20 +50,65 @@ class FancyBase(cli.Base):
                                input_str, end='\n')
 
     """
+    Levenshtein string distance calculator
+    modified to assign 0 cost to appending or prepending to string a
+    seems to underestimate cost oops
+    """
+
+    @staticmethod
+    def lev(a, b):
+        len_a, len_b = len(a), len(b)
+        if len_a == 0:
+            return len_b
+        if len_b == 0:
+            return len_a
+
+        a = a.lower()
+        b = b.lower()
+
+        dist_m = [[0] * (len_b + 1) for _ in range(len_a + 1)]
+
+        for itr_a in range(1, len_a + 1):
+            dist_m[itr_a][0] = itr_a
+        for itr_b in range(1, len_b + 1):
+            dist_m[0][itr_b] = 0 if itr_b <= len_b else itr_b  # No cost for insertions at the start of s1
+
+        for itr_a in range(1, len_a + 1):
+            for itr_b in range(1, len_b + 1):
+                if a[itr_a - 1] == b[itr_b - 1]:
+                    dist_m[itr_a][itr_b] = dist_m[itr_a - 1][itr_b - 1]
+                else:
+                    ins_cost = (0 if itr_a == len_a or itr_a == 1 else 1)  # Free if at start or end of s1
+                    dist_m[itr_a][itr_b] = min(
+                        dist_m[itr_a - 1][itr_b] + 1,         # Deletion
+                        dist_m[itr_a][itr_b - 1] + ins_cost,  # Insertion,
+                        dist_m[itr_a - 1][itr_b - 1] + 1      # Substitution
+                    )
+
+        if len_a <= len_b:
+            return min(dist_m[len_a][len_a:len_b + 1])
+        else:
+            return dist_m[len_a][len_b]
+
+    """
     finds all options in the options tree that begins with the given string
     """
+
     @staticmethod
     def __matches(options, string):  # not super efficient but was easy to write
         def __impl(_segments, _option, _built, _valid):
             if len(_segments) == 1:  # base case, last segment
-                if _option.string == _segments[0]:
+                if _segments[0] == _option.string:
                     for _child in _option.children:  # show only children if segment matches exactly
-                        _valid.append(' '.join(_built + [_option.string, _child.string]))
-                elif _option.string.startswith(_segments[0]):
-                    _valid.append(' '.join(_built + [_option.string]))
+                        _valid.append((' '.join(_built + [_option.string, _child.string]), 0))
+                elif _segments[0] == "":
+                    valid.append((' '.join(_built + [_option.string]), 0))
+                else:
+                    _valid.append((' '.join(_built + [_option.string]),
+                                   FancyBase.lev(_segments[0], _option.string)))
                 return
 
-            if _option.string != _segments[0]:  # option body does not match non-last segment
+            if _option.string != _segments[0]:  # option body does must match non-last segment
                 return
 
             if len(_option.children) == 0:
@@ -77,7 +123,10 @@ class FancyBase(cli.Base):
         valid = []
         for option in options:
             __impl(segments, option, [], valid)
-        return valid
+        valid.sort(key=lambda x: x[1])
+        return list(map(lambda x: x[0],
+                        filter(lambda x: x[1] < 4,  # max lev distance before the option is not suggested
+                               valid)))
 
     @staticmethod
     def __strict_match(options, string):
@@ -101,6 +150,12 @@ class FancyBase(cli.Base):
 
     @staticmethod
     def choose_fill(options, strict=False, head=None, prompt="> ", max_options=5):
+        if os.name == 'nt':  # fix ansi if we are running on Windows
+            # TODO: detect if windows version does not support ansi flag and fall back to base choose
+            from ctypes import windll
+            k = windll.kernel32
+            k.SetConsoleMode(k.GetStdHandle(-11), 7)
+
         if head is not None:
             print(head)
 
@@ -115,12 +170,6 @@ class FancyBase(cli.Base):
     @staticmethod
     def __choose_fill_impl(options, prompt, max_options):
         cursor_x = len(prompt)
-
-        if os.name == 'nt':  # fix ansi if we are running on Windows
-            # TODO: detect if windows version does not support ansi flag and fall back to base choose
-            from ctypes import windll
-            k = windll.kernel32
-            k.SetConsoleMode(k.GetStdHandle(-11), 7)
 
         FancyBase.__print_init(prompt, max_options)
         matching_options = list(map(lambda x: x.string, options))
@@ -139,8 +188,8 @@ class FancyBase(cli.Base):
                     FancyBase.__print__cleanup(stringbuilder, max_options, cursor_x)
                     return stringbuilder
                 else:
-                    FancyBase.__print__cleanup(matching_options[selected_line-1], max_options, cursor_x)
-                    return matching_options[selected_line-1]
+                    FancyBase.__print__cleanup(matching_options[selected_line - 1], max_options, cursor_x)
+                    return matching_options[selected_line - 1]
 
             if char == readchar.key.BACKSPACE and len(stringbuilder) > 0:
                 stringbuilder = stringbuilder[:-1]
@@ -151,7 +200,7 @@ class FancyBase(cli.Base):
             elif char == readchar.key.DOWN and selected_line < max_line:
                 selected_line += 1
             elif char == readchar.key.TAB and max_line > 0:
-                stringbuilder = matching_options[max(0, selected_line-1)]
+                stringbuilder = matching_options[max(0, selected_line - 1)]
                 selected_line = 0
             elif char == readchar.key.CTRL_W:
                 space_index = stringbuilder.rfind(' ')
