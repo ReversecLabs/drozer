@@ -178,6 +178,7 @@ class FancyBase(cli.Base):
         stringbuilder = ""
         selected_line = 0
         max_line = min(max_options, len(matching_options))
+        virtual_space = False
 
         while True:
             print('', end='', flush=True)
@@ -192,14 +193,19 @@ class FancyBase(cli.Base):
                     return matching_options[selected_line - 1]
 
             if char == readchar.key.BACKSPACE and len(stringbuilder) > 0:
+                virtual_space = False
                 stringbuilder = stringbuilder[:-1]
             elif char.isprintable():
+                if virtual_space:
+                    stringbuilder += ' '
+                    virtual_space = False
                 stringbuilder += char
             elif char == readchar.key.UP and selected_line > 0:
                 selected_line -= 1
             elif char == readchar.key.DOWN and selected_line < max_line:
                 selected_line += 1
             elif char == readchar.key.TAB and max_line > 0:
+                virtual_space = True
                 stringbuilder = matching_options[max(0, selected_line - 1)]
                 selected_line = 0
             elif char == readchar.key.CTRL_W:
@@ -210,7 +216,7 @@ class FancyBase(cli.Base):
                 else:
                     stringbuilder = stringbuilder[:space_index]
 
-            matching_options = FancyBase.__matches(options, stringbuilder)
+            matching_options = FancyBase.__matches(options, stringbuilder if not virtual_space else stringbuilder + " ")
 
             max_line = min(max_options, len(matching_options))
             if selected_line > max_line:
