@@ -3,17 +3,19 @@ import shutil
 from WithSecure.common.cli_fancy import *
 from drozer import android, meta
 from drozer.agent import builder, manifest
+from drozer.configuration import Configuration
 
-class AgentManager(cli.Base):
+
+class AgentManager(FancyBase):
     """
     drozer agent COMMAND [OPTIONS]
-    
+
     A utility for building custom drozer Agents.
     """
-    
+
     def __init__(self):
-        cli.Base.__init__(self)
-        
+        FancyBase.__init__(self)
+
         self._parser.add_argument("--rogue", action="store_true", default=False, help="create a rogue agent with no GUI")
         self._parser.add_argument("--no-gui", action="store_true", default=False, help="deprecated: rather use --rogue. create an agent with no GUI")
         self._parser.add_argument("--granular", action="store_true", default=False, help="don't request all permissions when building GUI-less agent")
@@ -25,61 +27,181 @@ class AgentManager(cli.Base):
         self._parser.add_argument("--out", "-o", default=None, help="set output file")
         self._parser.add_argument("--file", "-f", default=None, help="apk file for use with set_apk")
 
+    def do_interactive(self, arguments):
+        options_tree = [
+            OT("standard-agent"),
+            OT("rogue-agent")
+        ]
+        agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
+                                           max_options=len(options_tree))
+
+        packager = builder.Packager()
+        packager.unpack(agent_type)
+        man = manifest.Manifest(packager.manifest_path())
+        set_perms = man.permissions()
+
+        built = None
+        name = None
+        theme = None
+
+        print("set drozer options:\n")
+        while True:
+            options_tree = [  # maps must be re-created to be consumed again :c
+                OT("add", map(lambda x: OT(x.split('.')[-1]), android.permissions)),
+                OT("remove", map(lambda x: OT(x.split('.')[-1]), set_perms)),
+                OT("list", [OT("set"), OT("all")]),
+                OT("set", [OT("name"), OT("theme")]),
+                OT("config"),
+                OT("build"),
+                OT("help"),
+                OT("exit")
+            ]
+
+            if built is not None:
+                options_tree += [
+                    OT("copy")
+                ]
+
+            choice = (FancyBase.choose_fill(options_tree)
+                      .split(' '))
+            num_segments = len(choice)
+
+            help_str = """"
+            add PERMISSION_NAME     add permission to manifest
+            remove PERMISSION_NAME  remove permission from manifest
+            list all                list all available permissions
+            list set                list all set permissions
+            set name NAME           set the package name of the output apk
+            set theme THEME         set the application theme
+            config                  print currently set configuration
+            build                   build the apk
+            copy OUTPUT             copy a built apk to OUTPUT
+            exit                    exit tool
+            """
+
+            match choice[0].lower():
+                case "help":
+                    print(help_str)
+                case "add":
+                    if num_segments == 1:
+                        print("permission name required after \"add\"")
+                        continue
+                    perm_full_name = "android.permission." + choice[1]
+                    if perm_full_name in set_perms:
+                        print("permission is already set")
+                    if perm_full_name in android.permissions:
+                        set_perms.append(perm_full_name)
+                    else:
+                        print("permission " + perm_full_name + " is not valid")
+                case "remove":
+                    if num_segments == 1:
+                        print("permission name required after \"remove\"")
+                    perm_full_name = "android.permission." + choice[1]
+                    if perm_full_name in set_perms:
+                        set_perms.remove(perm_full_name)
+                    else:
+                        print("permission " + perm_full_name + " was not set")
+                case "list":
+                    if num_segments == 1:
+                        print("list requires a option (all, set)")
+                        continue
+                    match choice[1]:
+                        case "all":
+                            print("android permissions:\n" + '\n'.join(android.permissions))
+                        case "set":
+                            print("set permissions:\n" + '\n'.join(set_perms))
+                case "set":
+                    if num_segments < 3:
+                        print("set requires a name and value")
+                    match choice[1]:
+                        case "name":
+                            name = choice[2]
+                            print(f"theme => {choice[2]}")
+                        case "theme":
+                            theme = choice[2]
+                            print(f"theme => {choice[2]}")
+                        case _:
+                            print(f"unrecognised key \"{choice[1]}\"")
+                case "config":
+                    print("---Drozer Configuration---")
+                    if name is not None:
+                        print(f"package name: {name}")
+                    if theme is not None:
+                        print(f"package theme: {theme}")
+                    print("set permissions:")
+                    print("\n".join(map(lambda x: "\t"+x, set_perms)))
+                case "build":
+                    built = self.build_std(packager, permissions=set_perms, name=name, theme=theme)
+                    print("Done:", built)
+                case "exit":
+                    break
+                case "copy":
+                    if built is None:
+                        print("apk must be built before copy can be used")
+                        continue
+                    if num_segments == 1:
+                        print("copy requires an output directory")
+                        continue
+                    out = shutil.copy(built, choice[1])
+                    print(f"copied to: {out}")
+
+
     def do_build(self, arguments):
         """build a drozer Agent"""
 
-        source = (arguments.rogue or arguments.no_gui) and "rogue-agent" or "standard-agent"
+        source = "rogue-agent" if (arguments.rogue or arguments.no_gui) else "standard-agent"
         packager = builder.Packager()
         packager.unpack(source)
         
-        if arguments.rogue or arguments.no_gui:
-            if arguments.server is not None:
-                packager.get_config_file().put_server(arguments.server)
-            
-            if not arguments.granular:
-                permissions = set(android.permissions)
-            else:
-                permissions = set([])
-        else:
-            permissions = set([])
-        
-        if arguments.permission is not None:
-            permissions = permissions.union(arguments.permission)
-
-        defined_permissions = {}
-        if arguments.define_permission is not None:
-            defined_permissions = dict(map(lambda x: x.split(':'), arguments.define_permission))
-
-        # add extra permissions to the Manifest file
-        m = packager.get_manifest_file()
-
-        m_ver = packager.get_apktool_file()['versionInfo']['versionName']
-        c_ver = meta.version.__str__()
-        
-        if m_ver != c_ver:
-            print("Version Mismatch: Consider updating your build(s)")
-            print("Agent Version: %s" % m_ver)
-            print("drozer Version: %s" % c_ver)
-
-        for p in permissions:
-            m.add_permission(p)
-
-        for name, protectionLevel in defined_permissions.items():
-            m.define_permission(name, protectionLevel)
-
-        if arguments.name is not None:
-            m.set_name(arguments.name)
-
-        if arguments.theme is not None:
-            packager.get_config_file().put("theme", arguments.theme)
-
-        built = packager.package()
+        built = self.build_std(packager, permissions=arguments.permissions, define_permission_raw=arguments.define_permission, name=arguments.name, theme=arguments.theme)
 
         if arguments.out is not None:
             out = shutil.copy(built, arguments.out)
             print("Done:", out)
         else:
             print("Done:", built)
+
+    def build_std(self, packager, permissions = None, define_permission_raw = None, name = None, theme = None):
+        permissions = permissions or []
+
+        if define_permission_raw is None:
+            defined_permissions = []
+        else:
+            defined_permissions = dict(map(lambda x: x.split(':'), define_permission_raw))
+
+        m_ver = packager.get_apktool_file()['versionInfo']['versionName']
+        c_ver = meta.version.__str__()
+
+        if m_ver != c_ver:
+            print("Version Mismatch: Consider updating your build(s)")
+            print("Agent Version: %s" % m_ver)
+            print("drozer Version: %s" % c_ver)
+
+        m = packager.get_manifest_file()
+        for p in permissions:
+            m.add_permission(p)
+
+        for name, protectionLevel in defined_permissions:
+            m.define_permission(name, protectionLevel)
+
+        if name is not None:
+            m.set_name(name)
+
+        if theme is not None:
+            packager.get_config_file().put("theme", theme)
+
+        return packager.package()
+
+    def build_rogue(self, packager, server=None, granular=False):
+        if server is not None:
+            packager.get_config_file().put_server(server)
+
+        if not granular:
+            permissions = set(android.permissions)
+        else:
+            permissions = set([])
+        pass
+
 
     def do_set_apk(self, arguments):
         if arguments.file is None:
