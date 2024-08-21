@@ -9,7 +9,7 @@ class OT:
         if children is None:
             children = []
         self.string = string
-        self.children = children
+        self.children = list(children)
 
 
 class FancyBase(cli.Base):
