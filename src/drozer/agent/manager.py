@@ -37,12 +37,12 @@ class AgentManager(FancyBase):
 
         packager = builder.Packager()
         packager.unpack(agent_type)
-        man = manifest.Manifest(packager.manifest_path())
-        set_perms = man.permissions()
+        set_perms = packager.get_manifest_file().permissions()
 
         built = None
         name = None
         theme = None
+        port = 31415
 
         print("set drozer options:\n")
         while True:
@@ -50,7 +50,7 @@ class AgentManager(FancyBase):
                 OT("add", map(lambda x: OT(x.split('.')[-1]), android.permissions)),
                 OT("remove", map(lambda x: OT(x.split('.')[-1]), set_perms)),
                 OT("list", [OT("set"), OT("all")]),
-                OT("set", [OT("name"), OT("theme")]),
+                OT("set", [OT("name"), OT("theme"), OT("port")]),
                 OT("config"),
                 OT("build"),
                 OT("help"),
@@ -73,6 +73,7 @@ class AgentManager(FancyBase):
             list set                list all set permissions
             set name NAME           set the package name of the output apk
             set theme THEME         set the application theme
+            set port PORT           set the default listening port for drozer server
             config                  print currently set configuration
             build                   build the apk
             copy OUTPUT             copy a built apk to OUTPUT
@@ -120,6 +121,13 @@ class AgentManager(FancyBase):
                         case "theme":
                             theme = choice[2]
                             print(f"theme => {choice[2]}")
+                        case "port":
+                            try:
+                                int(choice[2])
+                                packager.get_config_file().put("server-port", choice[2])
+                                print(f"port => {choice[2]}")
+                            except ValueError:
+                                print("port must be an integer")
                         case _:
                             print(f"unrecognised key \"{choice[1]}\"")
                 case "config":
@@ -128,6 +136,7 @@ class AgentManager(FancyBase):
                         print(f"package name: {name}")
                     if theme is not None:
                         print(f"package theme: {theme}")
+                    print(f"default port: {port}")
                     print("set permissions:")
                     print("\n".join(map(lambda x: "\t"+x, set_perms)))
                 case "build":
