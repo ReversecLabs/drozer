@@ -116,6 +116,14 @@ class Configuration(object):
             return None
         
     @classmethod
+    def library_unchecked(cls, name):
+        """
+        Returns the path to a drozer Library
+        """
+        
+        return os.path.join(os.path.dirname(__file__), "lib", name)
+        
+    @classmethod
     def path(cls):
         """
         Returns the path to the configuration file.

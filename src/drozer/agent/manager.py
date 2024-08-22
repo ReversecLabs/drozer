@@ -1,10 +1,12 @@
 import shutil
+import os
 
 from WithSecure.common.cli_fancy import *
 from drozer import android, meta
 from drozer.agent import builder, manifest
 from drozer.configuration import Configuration
-
+from urllib.request import urlopen
+from tempfile import TemporaryDirectory
 
 class AgentManager(FancyBase):
     """
@@ -26,6 +28,7 @@ class AgentManager(FancyBase):
         self._parser.add_argument("--theme", "-t", default=None, help="set app theme (red/blue/purple)")
         self._parser.add_argument("--out", "-o", default=None, help="set output file")
         self._parser.add_argument("--file", "-f", default=None, help="apk file for use with set_apk")
+        self._parser.add_argument("--version", "-v", default=None)
 
     def do_interactive(self, arguments):
         options_tree = [
@@ -161,10 +164,9 @@ class AgentManager(FancyBase):
         """build a drozer Agent"""
 
         source = "rogue-agent" if (arguments.rogue or arguments.no_gui) else "standard-agent"
-        packager = builder.Packager()
-        packager.unpack(source)
+        packager = builder.Packager.init_from_folder(Configuration.library("standard-agent"))
         
-        built = self.build_std(packager, permissions=arguments.permissions, define_permission_raw=arguments.define_permission, name=arguments.name, theme=arguments.theme)
+        built = self.build_std(packager, permissions=arguments.permission, define_permission_raw=arguments.define_permission, name=arguments.name, theme=arguments.theme)
 
         if arguments.out is not None:
             out = shutil.copy(built, arguments.out)
@@ -214,12 +216,47 @@ class AgentManager(FancyBase):
         pass
 
 
+
+    _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
     def do_set_apk(self, arguments):
-        if arguments.file is None:
-            print("--file argument is required when using set_apk")
-            return
+        out_path = Configuration.library_unchecked("standard-agent")
+        if arguments.file is not None:
+            self._set_apk(arguments.file, out_path)
+        else:
+            if arguments.version is not None:
+                url = f"{self._ws_dz_agent_url}/download/{arguments.version}/drozer-agent.apk"
+            else:
+                url = f"{self._ws_dz_agent_url}latest/download/drozer-agent.apk"
 
-        name = (arguments.rogue or arguments.no_gui) and "rogue-agent" or "standard-agent"
-        libpath = Configuration.library(name + ".apk")
+            self._download_apk(url, out_path, version=arguments.version)
+    
+    @classmethod
+    def _download_apk(cls, source, out_path, version = None):
 
-        shutil.copyfile(arguments.file, libpath)
+        with TemporaryDirectory() as temp:
+            apk_path = os.path.join(temp, "agent.apk")
+            unpack_path = os.path.join(temp, "standard-agent")
+
+            print(f"downloading latest apk from: {source}")
+            request = urlopen(source)
+            with open(apk_path, "wb") as f:
+                f.write(request.read())
+            print("Download finished")
+            
+            cls._set_apk_from_tmp(apk_path, out_path, unpack_path)
+
+            print("done!")
+    
+    @classmethod
+    def _set_apk(cls, apk_path, out_path):
+        with TemporaryDirectory as tmp:
+            cls._set_apk_from_tmp(apk_path, out_path, tmp)
+
+    @classmethod
+    def _set_apk_from_tmp(cls, apk_path, out_path, tmp_path):
+        print("unpacking apk")
+        builder.Packager.unpack_apk(apk_path, tmp_path)
+        print("unpack finished")
+        if os.path.exists(out_path):
+            shutil.rmtree(out_path)
+        shutil.copytree(tmp_path, out_path)

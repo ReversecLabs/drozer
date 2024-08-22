@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 import platform
 import yaml
-from WithSecure.common import command_wrapper
+import shutil
+import tempfile
 
+from WithSecure.common import command_wrapper
 from drozer.configuration import Configuration
 from drozer.agent import manifest
 
@@ -18,36 +21,68 @@ class Packager(command_wrapper.Wrapper):
     __manifest = "AndroidManifest.xml"
     __apktool_yml = "apktool.yml"
 
+    match(platform.system()):
+        case "Darwin":
+            __aapt = Configuration.library("aapt-osx")
+            __zipalign = Configuration.library("zipalign")
+
+        case "Windows":
+            __aapt = Configuration.library("aapt.exe")
+            __zipalign = Configuration.library("zipalign.exe")
+        case _:
+            __aapt = Configuration.library("aapt")
+            __zipalign = Configuration.library("zipalign")
+
     def __init__(self):
-        self.__wd = self._get_wd()
-
-        match(platform.system()):
-            case "Darwin":
-                self.__aapt = Configuration.library("aapt-osx")
-                self.__zipalign = Configuration.library("zipalign")
-
-            case "Windows":
-                self.__aapt = Configuration.library("aapt.exe")
-                self.__zipalign = Configuration.library("zipalign.exe")
-            case _:
-                self.__aapt = Configuration.library("aapt")
-                self.__zipalign = Configuration.library("zipalign")
+        self.__wd = tempfile.TemporaryDirectory()
 
         self.__manifest_file = None
         self.__config_file = None
         self.__apktool_file = None
 
+    @classmethod
+    def init_from_folder(cls, folder_path):
+        p = Packager()
+        shutil.copytree(folder_path, p.source_dir())
+        p._init_components()
+        return p
+        
+    @classmethod
+    def init_from_apk(cls, apk_path):
+        p = cls.__init__()
+        cls.unpack_apk(apk_path, p.source_dir())
+        p._init_components()
+        return p
+
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exception_type, exception_value, exception_traceback):
+        self.__wd.cleanup()
+
+    def _working_dir(self):
+        return Path(self.__wd.name)
+
+    def _init_components(self):
+        self.__manifest_file = manifest.Manifest(self.manifest_path())
+        self.__config_file = manifest.Endpoint(self.endpoint_path())
+        with open(self.apktool_yml_path(), 'r') as file:
+            self.__apktool_file = yaml.safe_load(file)
+
+    def source_dir(self):
+        return os.path.join(self._working_dir(), "agent")
+    
     def apk_path(self, name):
-        return os.path.join(self.__wd, name + ".apk")
+        return os.path.join(self._working_dir(), name + ".apk")
 
     def endpoint_path(self):
-        return os.path.join(self.__wd, "agent", "res", "raw", self.__endpoint)
+        return os.path.join(self.source_dir(), "res", "raw", self.__endpoint)
 
     def manifest_path(self):
-        return os.path.join(self.__wd, "agent", self.__manifest)
+        return os.path.join(self.source_dir(), self.__manifest)
 
     def apktool_yml_path(self):
-        return os.path.join(self.__wd, "agent", self.__apktool_yml)
+        return os.path.join(self.source_dir(), self.__apktool_yml)
 
     def get_config_file(self):
         return self.__config_file
@@ -84,19 +119,16 @@ class Packager(command_wrapper.Wrapper):
 
         return self.apk_path("agent")
 
-    def source_dir(self):
-        return os.path.join(self.__wd, "agent")
-
     def unpack(self, name):
         apk_path = Configuration.library(name + ".apk")
         if apk_path is None:
             raise RuntimeError("could not locate " + name + ".apk in library")
+        
+        self.unpack_apk(apk_path, self.source_dir())
+        self._init_components()
 
-        if self._execute([self.__java, "-jar", self.__apk_tool, "decode", apk_path,
-                          "-o", self.source_dir()]) != 0:
-            raise RuntimeError("could not unpack " + name)
-
-        self.__manifest_file = manifest.Manifest(self.manifest_path())
-        self.__config_file = manifest.Endpoint(self.endpoint_path())
-        with open(self.apktool_yml_path(), 'r') as file:
-            self.__apktool_file = yaml.safe_load(file)
+    @classmethod
+    def unpack_apk(cls, in_path, out_path):
+        if cls._execute([cls.__java, "-jar", cls.__apk_tool, "decode", in_path,
+                         "-o", out_path]) != 0:
+            raise RuntimeError("could not unpack " + in_path)
