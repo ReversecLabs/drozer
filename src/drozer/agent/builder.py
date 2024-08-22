@@ -43,13 +43,14 @@ class Packager(command_wrapper.Wrapper):
     @classmethod
     def init_from_folder(cls, folder_path):
         p = Packager()
+        print("copying files to working directory, this may take some time...")
         shutil.copytree(folder_path, p.source_dir())
         p._init_components()
         return p
         
     @classmethod
     def init_from_apk(cls, apk_path):
-        p = cls.__init__()
+        p = Packager()
         cls.unpack_apk(apk_path, p.source_dir())
         p._init_components()
         return p
@@ -60,14 +61,17 @@ class Packager(command_wrapper.Wrapper):
     def __exit__(self, exception_type, exception_value, exception_traceback):
         self.__wd.cleanup()
 
-    def _working_dir(self):
-        return Path(self.__wd.name)
-
     def _init_components(self):
         self.__manifest_file = manifest.Manifest(self.manifest_path())
         self.__config_file = manifest.Endpoint(self.endpoint_path())
         with open(self.apktool_yml_path(), 'r') as file:
             self.__apktool_file = yaml.safe_load(file)
+
+    def close(self):
+        self.__wd.cleanup()
+
+    def _working_dir(self):
+        return Path(self.__wd.name)
 
     def source_dir(self):
         return os.path.join(self._working_dir(), "agent")
@@ -119,6 +123,10 @@ class Packager(command_wrapper.Wrapper):
 
         return self.apk_path("agent")
 
+    """
+    Depreciated
+    use init_from_apk() instead to ensure Packager object is always in a valid state
+    """
     def unpack(self, name):
         apk_path = Configuration.library(name + ".apk")
         if apk_path is None:

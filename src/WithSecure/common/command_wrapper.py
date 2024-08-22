@@ -13,4 +13,3 @@ class Wrapper(object):
 
     def _get_wd(self):
         return tempfile.mkdtemp()
-

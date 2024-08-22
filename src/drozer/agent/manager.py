@@ -38,8 +38,7 @@ class AgentManager(FancyBase):
         agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
                                            max_options=len(options_tree))
 
-        packager = builder.Packager()
-        packager.unpack(agent_type)
+        packager = builder.Packager.init_from_folder(Configuration.library(agent_type))
         set_perms = packager.get_manifest_file().permissions()
 
         built = None
@@ -158,6 +157,7 @@ class AgentManager(FancyBase):
                         continue
                     out = shutil.copy(built, choice[1])
                     print(f"copied to: {out}")
+        packager.close()
 
 
     def do_build(self, arguments):
@@ -170,9 +170,10 @@ class AgentManager(FancyBase):
 
         if arguments.out is not None:
             out = shutil.copy(built, arguments.out)
-            print("Done:", out)
         else:
-            print("Done:", built)
+            out = shutil.copy(built, ".")
+        print("Done:", out)
+        packager.close()
 
     def build_std(self, packager, permissions = None, define_permission_raw = None, name = None, theme = None):
         permissions = permissions or []
@@ -214,8 +215,6 @@ class AgentManager(FancyBase):
         else:
             permissions = set([])
         pass
-
-
 
     _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
     def do_set_apk(self, arguments):
@@ -259,4 +258,5 @@ class AgentManager(FancyBase):
         print("unpack finished")
         if os.path.exists(out_path):
             shutil.rmtree(out_path)
+        print("copying to library, this may take some time...")
         shutil.copytree(tmp_path, out_path)

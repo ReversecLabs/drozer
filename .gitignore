@@ -18,6 +18,7 @@ obj
 src/drozer/modules/**/*.class
 src/drozer/modules/**/*.apk
 src/drozer.egg-info
+src/drozer/lib/standard-agent
 mercury.log
 deb_dist/*
 *.tar.gz

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import importlib
 import sys
 import os
 import distro
@@ -39,3 +39,10 @@ def main():
             print_usage()
     else:
         print_usage()
+
+
+#sys.argv = ["drozer", "agent", "build", "-n", "lol", "--theme", "red", "-o", "lol.apk"]
+#sys.argv = ["drozer", "agent", "interactive"]
+#sys.argv = ["drozer", "agent", "build", "-o", "lol2.apk"]
+#sys.argv = ["drozer", "console", "connect", "--server", "localhost:31415"]
+main()
