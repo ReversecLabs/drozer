@@ -184,7 +184,7 @@ class FancyBase(cli.Base):
             print('', end='', flush=True)
             char = readchar.readkey()
 
-            if char == readchar.key.ENTER or char == readchar.key.ENTER_2:
+            if char == readchar.key.ENTER:
                 if selected_line == 0:
                     FancyBase.__print__cleanup(stringbuilder, max_options, cursor_x)
                     return stringbuilder
