@@ -120,7 +120,7 @@ class AgentManager(FancyBase):
                     match choice[1]:
                         case "name":
                             name = choice[2]
-                            print(f"theme => {choice[2]}")
+                            print(f"name => {choice[2]}")
                         case "theme":
                             theme = choice[2]
                             print(f"theme => {choice[2]}")
