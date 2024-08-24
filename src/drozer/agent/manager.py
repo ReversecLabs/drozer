@@ -31,6 +31,7 @@ class AgentManager(FancyBase):
         self._parser.add_argument("--version", "-v", default=None)
 
     def do_interactive(self, arguments):
+        """build a drozer Agent with an interactive cli"""
         options_tree = [
             OT("standard-agent"),
             OT("rogue-agent")
@@ -223,6 +224,8 @@ class AgentManager(FancyBase):
     _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
 
     def do_set_apk(self, arguments):
+        """set the base apk for use with build commands"""
+
         out_path = os.path.join(Configuration.library_path(), "standard-agent")
         if arguments.file is not None:
             self._set_apk(arguments.file, out_path)
