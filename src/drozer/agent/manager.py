@@ -1,5 +1,6 @@
 import shutil
 import os
+from urllib.error import HTTPError
 
 from WithSecure.common.cli_fancy import *
 from drozer import android, meta
@@ -177,8 +178,8 @@ class AgentManager(FancyBase):
             out = shutil.copy(built, arguments.out)
         else:
             out = shutil.copy(built, ".")
-        print("Done:", out)
         packager.close()
+        print("Done:", out)
 
     @staticmethod
     def build_std(packager, permissions=None, define_permission=None, name=None, theme=None):
@@ -250,14 +251,23 @@ class AgentManager(FancyBase):
             unpack_path = os.path.join(temp, "standard-agent")
 
             print(f"downloading latest apk from: {source}")
-            request = urlopen(source)
+
+            try:
+                request = urlopen(source)
+            except HTTPError as e:
+                if e.code == 404:
+                    print(f"release does not appear to exist, if you specified a custom version or url verify that it exists")
+                else:
+                    print(f"unexpected HTTP error occurred, verify you can access the repository at: {source}")
+                raise e
+
             with open(apk_path, "wb") as f:
                 f.write(request.read())
             print("Download finished")
             
             cls._set_apk_from_tmp(apk_path, out_path, unpack_path)
-
-            print("done!")
+            print("cleaning up working directory")
+        print("done!")
     
     @classmethod
     def _set_apk(cls, apk_path, out_path):
@@ -267,9 +277,16 @@ class AgentManager(FancyBase):
     @classmethod
     def _set_apk_from_tmp(cls, apk_path, out_path, tmp_path):
         print("unpacking apk")
-        builder.Packager.unpack_apk(apk_path, tmp_path)
+
+        try:
+            builder.Packager.unpack_apk(apk_path, tmp_path)
+        except Exception as e:
+            print("unable to unpack apk, it may be corrupt")
+            raise e
+
         print("unpack finished")
         if os.path.exists(out_path):
+            print("removing existing agent base")
             shutil.rmtree(out_path)
         print("copying to library, this may take some time...")
         shutil.copytree(tmp_path, out_path)
