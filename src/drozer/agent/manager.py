@@ -27,8 +27,10 @@ class AgentManager(FancyBase):
         self._parser.add_argument("--name", "-n", default=None, help="set package name to allow multiple instances")
         self._parser.add_argument("--theme", "-t", default=None, help="set app theme (red/blue/purple)")
         self._parser.add_argument("--out", "-o", default=None, help="set output file")
-        self._parser.add_argument("--file", "-f", default=None, help="apk file for use with set_apk")
-        self._parser.add_argument("--version", "-v", default=None)
+        self._parser.add_argument("--latest", "-l", action="store_true", help="for use with set_apk, download the lates drozer agent from WithSecureLabs repository")
+        self._parser.add_argument("--file", "-f", default=None, help="for use with set_apk, set a local file as the base for custom drozer agents")
+        self._parser.add_argument("--version", "-v", default=None, help="for use with set_apk, specify the apk version to install")
+        self._parser.add_argument("--url", "-u", default=None, help="for use with set_apk, download apk from url")
 
     def do_interactive(self, arguments):
         """build a drozer Agent with an interactive cli"""
@@ -229,16 +231,20 @@ class AgentManager(FancyBase):
         out_path = os.path.join(Configuration.library_path(), "standard-agent")
         if arguments.file is not None:
             self._set_apk(arguments.file, out_path)
-        else:
-            if arguments.version is not None:
-                url = f"{self._ws_dz_agent_url}/download/{arguments.version}/drozer-agent.apk"
+        elif arguments.url is not None or arguments.version is not None or arguments.latest:
+            if arguments.url is not None:
+                url = arguments.url
+            elif arguments.version is not None:
+                url = f"{self._ws_dz_agent_url}download/{arguments.version}/drozer-agent.apk"
             else:
                 url = f"{self._ws_dz_agent_url}latest/download/drozer-agent.apk"
 
-            self._download_apk(url, out_path, version=arguments.version)
+            self._download_apk(url, out_path)
+        else:
+            print("you must specify an apk with a local file, url, or use the latest flag")
     
     @classmethod
-    def _download_apk(cls, source, out_path, version=None):
+    def _download_apk(cls, source, out_path):
         with TemporaryDirectory() as temp:
             apk_path = os.path.join(temp, "agent.apk")
             unpack_path = os.path.join(temp, "standard-agent")
