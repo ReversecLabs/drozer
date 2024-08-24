@@ -2,6 +2,7 @@ import configparser
 import os
 import platform
 import sys
+import pathlib
 
 from WithSecure.common import system
 
@@ -101,27 +102,34 @@ class Configuration(object):
         cls.__ensure_config()
         
         return cls.__config.has_section(section)
+
+    @classmethod
+    def library_path(cls):
+        """
+        Returns the path to the drozer Library
+        """
+        return os.path.join(os.path.dirname(__file__), "lib")
     
     @classmethod
     def library(cls, name):
         """
-        Returns the path to a drozer Library
+        Returns the path to a drozer Library file
+        Library search order is
+            1) lib/name
+            2) lib/platform/name
+            3) lib/platform/name.*
         """
         
-        path = os.path.join(os.path.dirname(__file__), "lib", name)
-        
-        if os.path.exists(path):
-            return path
-        else:
-            return None
-        
-    @classmethod
-    def library_unchecked(cls, name):
-        """
-        Returns the path to a drozer Library
-        """
-        
-        return os.path.join(os.path.dirname(__file__), "lib", name)
+        file_path = os.path.join(cls.library_path(), name)
+        if os.path.exists(file_path):
+            return file_path
+
+        file_path = os.path.join(cls.library_path(), platform.system(), name)
+        if os.path.exists(file_path):
+            return file_path
+
+        dir_path = pathlib.Path(os.path.join(cls.library_path(), platform.system()))
+        return next(dir_path.glob(f"{name}.*"), None)
         
     @classmethod
     def path(cls):

@@ -20,18 +20,8 @@ class Packager(command_wrapper.Wrapper):
     __endpoint = "config.txt"
     __manifest = "AndroidManifest.xml"
     __apktool_yml = "apktool.yml"
-
-    match(platform.system()):
-        case "Darwin":
-            __aapt = Configuration.library("aapt-osx")
-            __zipalign = Configuration.library("zipalign")
-
-        case "Windows":
-            __aapt = Configuration.library("aapt.exe")
-            __zipalign = Configuration.library("zipalign.exe")
-        case _:
-            __aapt = Configuration.library("aapt")
-            __zipalign = Configuration.library("zipalign")
+    __aapt = Configuration.library("aapt")
+    __zipalign = Configuration.library("zipalign")
 
     def __init__(self):
         self.__wd = tempfile.TemporaryDirectory()

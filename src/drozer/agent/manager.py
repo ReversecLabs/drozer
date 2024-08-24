@@ -223,7 +223,7 @@ class AgentManager(FancyBase):
     _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
 
     def do_set_apk(self, arguments):
-        out_path = Configuration.library_unchecked("standard-agent")
+        out_path = os.path.join(Configuration.library_path(), "standard-agent")
         if arguments.file is not None:
             self._set_apk(arguments.file, out_path)
         else:
