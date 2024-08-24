@@ -39,7 +39,7 @@ class AgentManager(FancyBase):
                                            max_options=len(options_tree))
 
         packager = builder.Packager.init_from_folder(Configuration.library(agent_type))
-        set_perms = packager.get_manifest_file().permissions()
+        permisions = packager.get_manifest_file().permissions()
 
         built = None
         name = None
@@ -50,7 +50,7 @@ class AgentManager(FancyBase):
         while True:
             options_tree = [  # maps must be re-created to be consumed again :c
                 OT("add", map(lambda x: OT(x.split('.')[-1]), android.permissions)),
-                OT("remove", map(lambda x: OT(x.split('.')[-1]), set_perms)),
+                OT("remove", map(lambda x: OT(x.split('.')[-1]), permisions)),
                 OT("list", [OT("set"), OT("all")]),
                 OT("set", [OT("name"),
                            OT("theme", [OT("purple"), OT("red"), OT("green"), OT("blue")]),
@@ -92,20 +92,19 @@ class AgentManager(FancyBase):
                         print("permission name required after \"add\"")
                         continue
                     perm_full_name = "android.permission." + choice[1]
-                    if perm_full_name in set_perms:
-                        print("permission is already set")
                     if perm_full_name in android.permissions:
-                        set_perms.append(perm_full_name)
+                        permisions.append(perm_full_name)
                     else:
                         print("permission " + perm_full_name + " is not valid")
                 case "remove":
                     if num_segments == 1:
                         print("permission name required after \"remove\"")
+                        continue
                     perm_full_name = "android.permission." + choice[1]
-                    if perm_full_name in set_perms:
-                        set_perms.remove(perm_full_name)
-                    else:
-                        print("permission " + perm_full_name + " was not set")
+                    try:
+                        permisions.remove(perm_full_name)
+                    except ValueError:
+                        pass
                 case "list":
                     if num_segments == 1:
                         print("list requires a option (all, set)")
@@ -114,7 +113,7 @@ class AgentManager(FancyBase):
                         case "all":
                             print("android permissions:\n" + '\n'.join(android.permissions))
                         case "set":
-                            print("set permissions:\n" + '\n'.join(set_perms))
+                            print("set permissions:\n" + '\n'.join(permisions))
                 case "set":
                     if num_segments < 3:
                         print("set requires a name and value")
@@ -142,9 +141,9 @@ class AgentManager(FancyBase):
                         print(f"package theme: {theme}")
                     print(f"default port: {port}")
                     print("set permissions:")
-                    print("\n".join(map(lambda x: "\t"+x, set_perms)))
+                    print("\n".join(map(lambda x: "\t"+x, permisions)))
                 case "build":
-                    built = self.build_std(packager, permissions=set_perms, name=name, theme=theme)
+                    built = self.build_std(packager, permissions=permisions, name=name, theme=theme)
                     print("Done:", built)
                 case "exit":
                     break
@@ -157,8 +156,8 @@ class AgentManager(FancyBase):
                         continue
                     out = shutil.copy(built, choice[1])
                     print(f"copied to: {out}")
+        print("cleaning up working directory...")
         packager.close()
-
 
     def do_build(self, arguments):
         """build a drozer Agent"""
@@ -175,13 +174,12 @@ class AgentManager(FancyBase):
         print("Done:", out)
         packager.close()
 
-    def build_std(self, packager, permissions = None, define_permission_raw = None, name = None, theme = None):
+    @staticmethod
+    def build_std(packager, permissions=None, define_permission_raw=None, name=None, theme=None):
         permissions = permissions or []
-
-        if define_permission_raw is None:
-            defined_permissions = []
-        else:
-            defined_permissions = dict(map(lambda x: x.split(':'), define_permission_raw))
+        defined_permissions = list(map(lambda x: tuple(x.split(':', 1)), define_permission_raw))\
+            if define_permission_raw is not None else\
+            []
 
         m_ver = packager.get_apktool_file()['versionInfo']['versionName']
         c_ver = meta.version.__str__()
@@ -191,15 +189,20 @@ class AgentManager(FancyBase):
             print("Agent Version: %s" % m_ver)
             print("drozer Version: %s" % c_ver)
 
-        m = packager.get_manifest_file()
-        for p in permissions:
-            m.add_permission(p)
+        man = packager.get_manifest_file()
+        permissions_in_manifest = man.permissions()
+        for p in permissions_in_manifest:  # remove unwanted perms
+            if p not in permissions:
+                man.remove_permission(p)
+        for p in permissions:  # add our perms
+            if p not in permissions_in_manifest:
+                man.add_permission(p)
 
         for name, protectionLevel in defined_permissions:
-            m.define_permission(name, protectionLevel)
+            man.define_permission(name, protectionLevel)
 
         if name is not None:
-            m.set_name(name)
+            man.set_name(name)
 
         if theme is not None:
             packager.get_config_file().put("theme", theme)
@@ -217,6 +220,7 @@ class AgentManager(FancyBase):
         pass
 
     _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
+
     def do_set_apk(self, arguments):
         out_path = Configuration.library_unchecked("standard-agent")
         if arguments.file is not None:
@@ -230,8 +234,7 @@ class AgentManager(FancyBase):
             self._download_apk(url, out_path, version=arguments.version)
     
     @classmethod
-    def _download_apk(cls, source, out_path, version = None):
-
+    def _download_apk(cls, source, out_path, version=None):
         with TemporaryDirectory() as temp:
             apk_path = os.path.join(temp, "agent.apk")
             unpack_path = os.path.join(temp, "standard-agent")

@@ -49,13 +49,17 @@ class Manifest(object):
         
         self.__doc.insert(len(list(self.__doc)) - 1, node)
 
-    def define_permission(self, name, protectionLevel):
+    def remove_permission(self, name):
+        node = self.__doc.find(f"uses-permission[@{{http://schemas.android.com/apk/res/android}}name='{name}']")
+        if node is not None:
+            self.__doc.remove(node)
+
+    def define_permission(self, name, protection_level):
         node = xml.Element('permission')
         node.attrib["{http://schemas.android.com/apk/res/android}name"] = name
-        node.attrib["{http://schemas.android.com/apk/res/android}protectionLevel"] = protectionLevel
+        node.attrib["{http://schemas.android.com/apk/res/android}protectionLevel"] = protection_level
         
-        self.__doc.insert(len(list(self.__doc)) - 1, node)
-
+        self.__doc.append(node)
 
     def set_name(self, name):
         full_name = "com.withsecure." + name
