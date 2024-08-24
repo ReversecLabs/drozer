@@ -49,11 +49,10 @@ class FancyBase(cli.Base):
         FancyBase.__ansi_print(cursor.prev_line(max_options), cursor.goto_x(offset_x + 1), cursor.erase_line(0),
                                input_str, end='\n')
 
-    """
-    Levenshtein string distance calculator
-    modified to assign 0 cost to appending or prepending to string a
-    seems to underestimate cost oops
-    """
+    # Levenshtein string distance calculator
+    # modified to assign 0 cost to appending or prepending to string a
+    # seems to underestimate cost oops
+    # TODO: On second thoughts this might not be the best approach, lev may work with longer a strings but may need to use a diffrent algo for short strings
 
     @staticmethod
     def lev(a, b):
@@ -197,8 +196,9 @@ class FancyBase(cli.Base):
                 stringbuilder = stringbuilder[:-1]
             elif char.isprintable():
                 if virtual_space:
-                    stringbuilder += ' '
                     virtual_space = False
+                    if char != " ":
+                        stringbuilder += " "
                 stringbuilder += char
             elif char == readchar.key.UP and selected_line > 0:
                 selected_line -= 1
@@ -212,6 +212,7 @@ class FancyBase(cli.Base):
                 space_index = stringbuilder.rfind(' ')
                 selected_line = 0
                 if space_index == -1:
+                    virtual_space = False
                     stringbuilder = ""
                 else:
                     stringbuilder = stringbuilder[:space_index]
