@@ -164,8 +164,11 @@ class AgentManager(FancyBase):
 
         source = "rogue-agent" if (arguments.rogue or arguments.no_gui) else "standard-agent"
         packager = builder.Packager.init_from_folder(Configuration.library("standard-agent"))
-        
-        built = self.build_std(packager, permissions=arguments.permission, define_permission_raw=arguments.define_permission, name=arguments.name, theme=arguments.theme)
+
+        define_permission = list(map(lambda x: tuple(x.split(':', 1)), arguments.define_permission))\
+            if arguments.define_permission is not None else\
+            []
+        built = self.build_std(packager, permissions=arguments.permission, define_permission=define_permission, name=arguments.name, theme=arguments.theme)
 
         if arguments.out is not None:
             out = shutil.copy(built, arguments.out)
@@ -175,11 +178,9 @@ class AgentManager(FancyBase):
         packager.close()
 
     @staticmethod
-    def build_std(packager, permissions=None, define_permission_raw=None, name=None, theme=None):
+    def build_std(packager, permissions=None, define_permission=None, name=None, theme=None):
         permissions = permissions or []
-        defined_permissions = list(map(lambda x: tuple(x.split(':', 1)), define_permission_raw))\
-            if define_permission_raw is not None else\
-            []
+        defined_permissions = define_permission or []
 
         m_ver = packager.get_apktool_file()['versionInfo']['versionName']
         c_ver = meta.version.__str__()
