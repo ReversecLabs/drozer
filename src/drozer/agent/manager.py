@@ -83,8 +83,7 @@ class AgentManager(FancyBase):
             set theme THEME         set the application theme
             set port PORT           set the default listening port for drozer server
             config                  print currently set configuration
-            build                   build the apk
-            copy OUTPUT             copy a built apk to OUTPUT
+            build [OUTPUT]          build the apk with an optional name
             exit                    exit tool
             """
 
@@ -148,18 +147,11 @@ class AgentManager(FancyBase):
                     print("\n".join(map(lambda x: "\t"+x, permisions)))
                 case "build":
                     built = self.build_std(packager, permissions=permisions, name=name, theme=theme)
-                    print("Done:", built)
+                    out_name = choice[1] if num_segments > 1 else "."
+                    out = shutil.copy(built, out_name)
+                    print("Done:", out)
                 case "exit":
                     break
-                case "copy":
-                    if built is None:
-                        print("apk must be built before copy can be used")
-                        continue
-                    if num_segments == 1:
-                        print("copy requires an output directory")
-                        continue
-                    out = shutil.copy(built, choice[1])
-                    print(f"copied to: {out}")
         print("cleaning up working directory...")
         packager.close()
 
