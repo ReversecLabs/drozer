@@ -23,12 +23,23 @@ class Packager(command_wrapper.Wrapper):
     __aapt = Configuration.library("aapt")
     __zipalign = Configuration.library("zipalign")
 
-    def __init__(self):
-        self.__wd = tempfile.TemporaryDirectory()
+    def __init__(self, wd=None):
+        if wd is None:
+            self.__tmp_dir_object = tempfile.TemporaryDirectory()
+            self.__wd = Path(self.__tmp_dir_object.name)
+        else:
+            self.__tmp_dir_object = None
+            self.__wd = wd
 
         self.__manifest_file = None
         self.__config_file = None
         self.__apktool_file = None
+
+    @classmethod
+    def init_from_tmp_folder(cls, folder_path):
+        p = Packager(wd=folder_path)
+        p._init_components()
+        return p
 
     @classmethod
     def init_from_folder(cls, folder_path):
@@ -45,12 +56,6 @@ class Packager(command_wrapper.Wrapper):
         p._init_components()
         return p
 
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exception_type, exception_value, exception_traceback):
-        self.__wd.cleanup()
-
     def _init_components(self):
         self.__manifest_file = manifest.Manifest(self.manifest_path())
         self.__config_file = manifest.Endpoint(self.endpoint_path())
@@ -58,16 +63,14 @@ class Packager(command_wrapper.Wrapper):
             self.__apktool_file = yaml.safe_load(file)
 
     def close(self):
-        self.__wd.cleanup()
-
-    def _working_dir(self):
-        return Path(self.__wd.name)
+        if self.__tmp_dir_object is not None:
+            self.__tmp_dir_object.cleanup()
 
     def source_dir(self):
-        return os.path.join(self._working_dir(), "agent")
+        return os.path.join(self.__wd, "agent")
     
     def apk_path(self, name):
-        return os.path.join(self._working_dir(), name + ".apk")
+        return os.path.join(self.__wd, name + ".apk")
 
     def endpoint_path(self):
         return os.path.join(self.source_dir(), "res", "raw", self.__endpoint)
