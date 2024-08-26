@@ -116,11 +116,12 @@ class Packager(command_wrapper.Wrapper):
 
         return self.apk_path("agent")
 
-    """
-    Depreciated
-    use init_from_apk() instead to ensure Packager object is always in a valid state
-    """
     def unpack(self, name):
+        """
+        Depreciated
+        use init_from_apk() instead to ensure Packager object is always in a valid state
+        """
+
         apk_path = Configuration.library(name + ".apk")
         if apk_path is None:
             raise RuntimeError("could not locate " + name + ".apk in library")
