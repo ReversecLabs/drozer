@@ -224,8 +224,6 @@ class AgentManager(FancyBase):
             permissions = set([])
         pass
 
-    _ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
-
     def do_set_apk(self, arguments):
         """set the base apk for use with build commands"""
 
@@ -236,37 +234,36 @@ class AgentManager(FancyBase):
             if arguments.url is not None:
                 url = arguments.url
             elif arguments.version is not None:
-                url = f"{self._ws_dz_agent_url}download/{arguments.version}/drozer-agent.apk"
+                url = f"{Configuration._ws_dz_agent_url}download/{arguments.version}/drozer-agent.apk"
             else:
-                url = f"{self._ws_dz_agent_url}latest/download/drozer-agent.apk"
+                url = f"{Configuration.ws_dz_agent_url}latest/download/drozer-agent.apk"
 
             self._download_apk(url, out_path)
         else:
-            print("you must specify an apk with a local file, url, or use the latest flag")
+            print("You must specify an apk with a local file, url, or use the latest flag")
     
     @classmethod
     def _download_apk(cls, source, out_path):
-        with TemporaryDirectory() as temp:
-            apk_path = os.path.join(temp, "agent.apk")
-            unpack_path = os.path.join(temp, "standard-agent")
+        with TemporaryDirectory() as tmp:
+            apk_path = os.path.join(tmp, "agent.apk")
 
-            print(f"downloading latest apk from: {source}")
+            print(f"Downloading latest apk from: {source}")
 
             try:
                 request = urlopen(source)
             except HTTPError as e:
                 if e.code == 404:
-                    print(f"release does not appear to exist, if you specified a custom version or url verify that it exists")
+                    print(f"Release does not appear to exist, if you specified a custom version or url verify that it exists")
                 else:
-                    print(f"unexpected HTTP error occurred, verify you can access the repository at: {source}")
+                    print(f"Unexpected HTTP error occurred, verify you can access the repository at: {source}")
                 raise e
 
             with open(apk_path, "wb") as f:
                 f.write(request.read())
             print("Download finished")
             
-            cls._set_apk_from_tmp(apk_path, out_path, unpack_path)
-            print("cleaning up working directory")
+            cls._set_apk_from_tmp(apk_path, out_path, tmp)
+            print("Cleaning up working directory")
         print("done!")
     
     @classmethod
@@ -275,18 +272,26 @@ class AgentManager(FancyBase):
             cls._set_apk_from_tmp(apk_path, out_path, tmp)
 
     @classmethod
-    def _set_apk_from_tmp(cls, apk_path, out_path, tmp_path):
-        print("unpacking apk")
+    def _set_apk_from_tmp(cls, apk_path, out_path, tmp):
+        unpack_path = os.path.join(tmp, "agent")
+        print("Unpacking apk")
 
         try:
-            builder.Packager.unpack_apk(apk_path, tmp_path)
+            builder.Packager.unpack_apk(apk_path, unpack_path)
         except Exception as e:
-            print("unable to unpack apk, it may be corrupt")
+            print("Unable to unpack apk, it may be corrupt")
             raise e
 
-        print("unpack finished")
+        print("Unpack finished")
+
+        p = builder.Packager.init_from_tmp_folder(tmp)
+
+        man = p.get_manifest_file()  # clear all uses-perms and perms from manifest
+        man.remove_all_perms()
+        man.write()
+
         if os.path.exists(out_path):
-            print("removing existing agent base")
+            print("Removing existing agent base")
             shutil.rmtree(out_path)
-        print("copying to library, this may take some time...")
-        shutil.copytree(tmp_path, out_path)
+        print("Copying to library, this may take some time...")
+        shutil.copytree(unpack_path, out_path)

@@ -13,6 +13,7 @@ class Configuration(object):
     """
     
     __config = None
+    ws_dz_agent_url = "https://github.com/WithSecureLabs/drozer-agent/releases/"
     
     @classmethod
     def executable(cls, name):

@@ -89,6 +89,12 @@ class Manifest(object):
         return list(map(lambda x: x.attrib['{http://schemas.android.com/apk/res/android}name'],
                         self.__doc.findall('uses-permission')))
 
+    def remove_all_perms(self):
+        for permission_node in self.__doc.findall('uses-permission'):
+            self.__doc.remove(permission_node)
+        for defined_permission_node in self.__doc.findall('permission'):
+            self.__doc.remove(defined_permission_node)
+
     def write(self):
         xml.ElementTree(self.__doc).write(self.__path)
 

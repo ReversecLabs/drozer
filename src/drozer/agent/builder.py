@@ -44,7 +44,7 @@ class Packager(command_wrapper.Wrapper):
     @classmethod
     def init_from_folder(cls, folder_path):
         p = Packager()
-        print("copying files to working directory, this may take some time...")
+        print("Copying files to working directory, this may take some time...")
         shutil.copytree(folder_path, p.source_dir())
         p._init_components()
         return p
