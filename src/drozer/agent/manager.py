@@ -42,7 +42,12 @@ class AgentManager(FancyBase):
         agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
                                            max_options=len(options_tree))
 
-        packager = builder.Packager.init_from_folder(Configuration.library(agent_type))
+        base_apk = Configuration.library("standard-agent")
+        if base_apk is None:
+            print("Could not find base apk, has it been set with \"set-apk\"")
+            return
+        packager = builder.Packager.init_from_folder(base_apk)
+
         permissions = packager.get_manifest_file().permissions()
         security_permissions = packager.get_manifest_file().security_permissions()
 
@@ -170,7 +175,11 @@ class AgentManager(FancyBase):
         """build a drozer Agent"""
 
         source = "rogue-agent" if (arguments.rogue or arguments.no_gui) else "standard-agent"
-        packager = builder.Packager.init_from_folder(Configuration.library("standard-agent"))
+        base_apk = Configuration.library("standard-agent")
+        if base_apk is None:
+            print("Could not find base apk, has it been set with \"set-apk\"")
+            return
+        packager = builder.Packager.init_from_folder(base_apk)
 
         define_permission = list(map(lambda x: tuple(x.split(':', 1)), arguments.define_permission))\
             if arguments.define_permission is not None else\
