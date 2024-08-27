@@ -94,7 +94,7 @@ class Base(object):
     def do_commands(self, arguments):
         """shows a list of all console commands"""
 
-        print("usage: %s", self.__doc__.strip(), end="\n")
+        print("usage:", self.__doc__.strip(), end="\n")
         print("available commands:")
         print(self.__get_commands_help())
 
