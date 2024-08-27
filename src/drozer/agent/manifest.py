@@ -89,6 +89,11 @@ class Manifest(object):
         return list(map(lambda x: x.attrib['{http://schemas.android.com/apk/res/android}name'],
                         self.__doc.findall('uses-permission')))
 
+    def security_permissions(self):
+        return list(map(lambda x: (x.attrib['{http://schemas.android.com/apk/res/android}name'],
+                                   x.attrib['{http://schemas.android.com/apk/res/android}protectionLevel']),
+                        self.__doc.findall('permission')))
+
     def remove_all_perms(self):
         for permission_node in self.__doc.findall('uses-permission'):
             self.__doc.remove(permission_node)

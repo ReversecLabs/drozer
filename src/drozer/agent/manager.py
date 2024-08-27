@@ -43,7 +43,8 @@ class AgentManager(FancyBase):
                                            max_options=len(options_tree))
 
         packager = builder.Packager.init_from_folder(Configuration.library(agent_type))
-        permisions = packager.get_manifest_file().permissions()
+        permissions = packager.get_manifest_file().permissions()
+        security_permissions = packager.get_manifest_file().security_permissions()
 
         built = None
         name = None
@@ -54,7 +55,8 @@ class AgentManager(FancyBase):
         while True:
             options_tree = [  # maps must be re-created to be consumed again :c
                 OT("add", map(lambda x: OT(x.split('.')[-1]), android.permissions)),
-                OT("remove", map(lambda x: OT(x.split('.')[-1]), permisions)),
+                OT("remove", map(lambda x: OT(x.split('.')[-1]), permissions)),
+                OT("define"),
                 OT("list", [OT("set"), OT("all")]),
                 OT("set", [OT("name"),
                            OT("theme", [OT("purple"), OT("red"), OT("green"), OT("blue")]),
@@ -76,6 +78,8 @@ class AgentManager(FancyBase):
 
             help_str = """"
             add PERMISSION_NAME     add permission to manifest
+            define PERMISSION_NAME PROTECTION_LEVEL
+                                    define security permission
             remove PERMISSION_NAME  remove permission from manifest
             list all                list all available permissions
             list set                list all set permissions
@@ -96,7 +100,7 @@ class AgentManager(FancyBase):
                         continue
                     perm_full_name = "android.permission." + choice[1]
                     if perm_full_name in android.permissions:
-                        permisions.append(perm_full_name)
+                        permissions.append(perm_full_name)
                     else:
                         print("permission " + perm_full_name + " is not valid")
                 case "remove":
@@ -105,9 +109,14 @@ class AgentManager(FancyBase):
                         continue
                     perm_full_name = "android.permission." + choice[1]
                     try:
-                        permisions.remove(perm_full_name)
+                        permissions.remove(perm_full_name)
                     except ValueError:
                         pass
+                case "define":
+                    if num_segments < 3:
+                        print("define requires two arguments")
+                        pass
+                    security_permissions.append((choice[1], choice[2]))
                 case "list":
                     if num_segments == 1:
                         print("list requires a option (all, set)")
@@ -116,7 +125,7 @@ class AgentManager(FancyBase):
                         case "all":
                             print("android permissions:\n" + '\n'.join(android.permissions))
                         case "set":
-                            print("set permissions:\n" + '\n'.join(permisions))
+                            print("set permissions:\n" + '\n'.join(permissions))
                 case "set":
                     if num_segments < 3:
                         print("set requires a name and value")
@@ -144,9 +153,11 @@ class AgentManager(FancyBase):
                         print(f"package theme: {theme}")
                     print(f"default port: {port}")
                     print("set permissions:")
-                    print("\n".join(map(lambda x: "\t"+x, permisions)))
+                    print("\n".join(map(lambda x: f"\t{x}", permissions)))
+                    print("security permission:")
+                    print("\n".join(map(lambda x: f"\t{x[0]}\t{x[1]}", security_permissions)))
                 case "build":
-                    built = self.build_std(packager, permissions=permisions, name=name, theme=theme)
+                    built = self.build_std(packager, permissions=permissions, name=name, theme=theme)
                     out_name = choice[1] if num_segments > 1 else "."
                     out = shutil.copy(built, out_name)
                     print("Done:", out)
@@ -187,16 +198,11 @@ class AgentManager(FancyBase):
             print("drozer Version: %s" % c_ver)
 
         man = packager.get_manifest_file()
-        permissions_in_manifest = man.permissions()
-        for p in permissions_in_manifest:  # remove unwanted perms
-            if p not in permissions:
-                man.remove_permission(p)
         for p in permissions:  # add our perms
-            if p not in permissions_in_manifest:
-                man.add_permission(p)
+            man.add_permission(p)
 
-        for name, protectionLevel in defined_permissions:
-            man.define_permission(name, protectionLevel)
+        for name, protection_level in defined_permissions:
+            man.define_permission(name, protection_level)
 
         if name is not None:
             man.set_name(name)
