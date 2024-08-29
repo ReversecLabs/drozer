@@ -212,13 +212,19 @@ class AgentManager(FancyBase):
 
     @staticmethod
     def build_std(packager, permissions=None, define_permission=None, name=None, theme=None):
-        permissions = permissions or set()
-        defined_permissions = define_permission or set()
+        if permissions is not None:
+            permissions = set(permissions)
+        else:
+            permissions = set()
+        if define_permission is not None:
+            define_permission = set(define_permission)
+        else:
+            define_permission = set()
 
         # ensure minimal permissions
         permissions.add("com.android.permissions.Internet")
         permissions.add("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
-        defined_permissions.add(("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", "signature"))
+        define_permission.add(("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", "signature"))
 
         m_ver = packager.get_apktool_file()['versionInfo']['versionName']
         c_ver = meta.version.__str__()
@@ -232,7 +238,7 @@ class AgentManager(FancyBase):
         for p in permissions:  # add our perms
             man.add_permission(p)
 
-        for permission_name, protection_level in defined_permissions:
+        for permission_name, protection_level in define_permission:
             man.define_permission(permission_name, protection_level)
 
         if name is not None:
