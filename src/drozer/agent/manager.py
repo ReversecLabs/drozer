@@ -37,7 +37,7 @@ class AgentManager(FancyBase):
         presets = {
             "red":      (android.permissions, [], "drozer_red", "red"),
             "purple":   ([
-                            "android.permissions.INTERNET",
+                            "android.permission.INTERNET",
                             "android.permission.SYSTEM_ALERT_WINDOW",
                             "android.permission.FOREGROUND_SERVICE"
                          ], [], "drozer_purple", "purple")
@@ -222,7 +222,7 @@ class AgentManager(FancyBase):
             define_permission = set()
 
         # ensure minimal permissions
-        permissions.add("com.android.permissions.Internet")
+        permissions.add("android.permission.INTERNET")
         permissions.add("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
         define_permission.add(("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", "signature"))
 
