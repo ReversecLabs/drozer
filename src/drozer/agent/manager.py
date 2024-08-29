@@ -34,13 +34,22 @@ class AgentManager(FancyBase):
         self._parser.add_argument("--url", "-u", default=None, help="for use with set_apk, download apk from url")
 
     def do_interactive(self, arguments):
+        presets = {
+            "red":      (android.permissions, [], "drozer_red", "red"),
+            "purple":   ([
+                            "android.permissions.INTERNET",
+                            "android.permission.SYSTEM_ALERT_WINDOW",
+                            "android.permission.FOREGROUND_SERVICE"
+                         ], [], "drozer_purple", "purple")
+        }
+
         """build a drozer Agent with an interactive cli"""
         options_tree = [
             OT("standard-agent"),
             OT("rogue-agent")
         ]
-        agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
-                                           max_options=len(options_tree))
+        # agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
+        #                                    max_options=len(options_tree))
 
         base_apk = Configuration.library("standard-agent")
         if base_apk is None:
@@ -48,8 +57,8 @@ class AgentManager(FancyBase):
             return
         packager = builder.Packager.init_from_folder(base_apk)
 
-        permissions = packager.get_manifest_file().permissions()
-        security_permissions = packager.get_manifest_file().security_permissions()
+        permissions = set(packager.get_manifest_file().permissions())
+        security_permissions = set(packager.get_manifest_file().security_permissions())
 
         built = None
         name = None
@@ -61,6 +70,7 @@ class AgentManager(FancyBase):
             options_tree = [  # maps must be re-created to be consumed again :c
                 OT("add", map(lambda x: OT(x.split('.')[-1]), android.permissions)),
                 OT("remove", map(lambda x: OT(x.split('.')[-1]), permissions)),
+                OT("preset", [OT("red"), OT("purple")]),
                 OT("define"),
                 OT("list", [OT("set"), OT("all")]),
                 OT("set", [OT("name"),
@@ -71,11 +81,6 @@ class AgentManager(FancyBase):
                 OT("help"),
                 OT("exit")
             ]
-
-            if built is not None:
-                options_tree += [
-                    OT("copy")
-                ]
 
             choice = (FancyBase.choose_fill(options_tree)
                       .split(' '))
@@ -108,6 +113,16 @@ class AgentManager(FancyBase):
                         permissions.append(perm_full_name)
                     else:
                         print("permission " + perm_full_name + " is not valid")
+                case "preset":
+                    if num_segments == 1:
+                        print("preset requires a value")
+                        continue
+                    try:
+                        preset = presets[choice[1].lower()]
+                        permissions, security_permissions, name, theme = preset
+                    except KeyError:
+                        print(f"unknown preset {choice[1]}")
+                        continue
                 case "remove":
                     if num_segments == 1:
                         print("permission name required after \"remove\"")
