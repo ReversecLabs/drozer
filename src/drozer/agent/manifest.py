@@ -59,7 +59,7 @@ class Manifest(object):
         node.attrib["{http://schemas.android.com/apk/res/android}name"] = name
         node.attrib["{http://schemas.android.com/apk/res/android}protectionLevel"] = protection_level
         
-        self.__doc.append(node)
+        self.__doc.insert(len(list(self.__doc)) - 1, node)
 
     def set_name(self, name):
         full_name = "com.withsecure." + name
