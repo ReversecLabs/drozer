@@ -210,8 +210,13 @@ class AgentManager(FancyBase):
 
     @staticmethod
     def build_std(packager, permissions=None, define_permission=None, name=None, theme=None):
-        permissions = permissions or []
-        defined_permissions = define_permission or []
+        permissions = permissions or set()
+        defined_permissions = define_permission or set()
+
+        # ensure minimal permissions
+        permissions.add("com.android.permissions.Internet")
+        permissions.add("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        defined_permissions.add(("com.withsecure.dz.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", "signature"))
 
         m_ver = packager.get_apktool_file()['versionInfo']['versionName']
         c_ver = meta.version.__str__()
