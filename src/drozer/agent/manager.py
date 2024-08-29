@@ -196,10 +196,11 @@ class AgentManager(FancyBase):
             return
         packager = builder.Packager.init_from_folder(base_apk)
 
-        define_permission = set(map(lambda x: tuple(x.split(':', 1)), arguments.define_permission))\
-            if arguments.define_permission is not None else\
-            None
-        built = self.build_std(packager, permissions=set(arguments.permission), define_permission=define_permission,
+        if arguments.define_permission is not None:
+            define_permission = set(map(lambda x: tuple(x.split(':', 1)), arguments.define_permission))
+        else:
+            define_permission = None
+        built = self.build_std(packager, permissions=arguments.permission, define_permission=define_permission,
                                name=arguments.name, theme=arguments.theme)
 
         if arguments.out is not None:
