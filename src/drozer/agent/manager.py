@@ -262,7 +262,7 @@ class AgentManager(FancyBase):
             if arguments.url is not None:
                 url = arguments.url
             elif arguments.version is not None:
-                url = f"{Configuration._ws_dz_agent_url}download/{arguments.version}/drozer-agent.apk"
+                url = f"{Configuration.ws_dz_agent_url}download/{arguments.version}/drozer-agent.apk"
             else:
                 url = f"{Configuration.ws_dz_agent_url}latest/download/drozer-agent.apk"
 
@@ -296,7 +296,7 @@ class AgentManager(FancyBase):
     
     @classmethod
     def _set_apk(cls, apk_path, out_path):
-        with TemporaryDirectory as tmp:
+        with TemporaryDirectory() as tmp:
             cls._set_apk_from_tmp(apk_path, out_path, tmp)
 
     @classmethod
