@@ -45,11 +45,10 @@ class AgentManager(FancyBase):
                          ], [], "drozer_purple", "purple")
         }
 
-        """build a drozer Agent with an interactive cli"""
-        options_tree = [
-            OT("standard-agent"),
-            OT("rogue-agent")
-        ]
+        # options_tree = [
+        #     OT("standard-agent"),
+        #     OT("rogue-agent")
+        # ]
         # agent_type = FancyBase.choose_fill(options_tree, strict=True, head="Select drozer agent type",
         #                                    max_options=len(options_tree))
 
