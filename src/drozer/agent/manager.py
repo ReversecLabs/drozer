@@ -34,6 +34,8 @@ class AgentManager(FancyBase):
         self._parser.add_argument("--url", "-u", default=None, help="for use with set_apk, download apk from url")
 
     def do_interactive(self, arguments):
+        """build drozer agents in an interactive shell"""
+
         presets = {
             "red":      (android.permissions, [], "drozer_red", "red"),
             "purple":   ([
@@ -260,7 +262,7 @@ class AgentManager(FancyBase):
         pass
 
     def do_set_apk(self, arguments):
-        """set the base apk for use with build commands"""
+        """globally set the base apk which build commands will use"""
 
         out_path = os.path.join(Configuration.library_path(), "standard-agent")
         if arguments.file is not None:
