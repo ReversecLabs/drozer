@@ -4,8 +4,8 @@ import tempfile
 
 
 class Wrapper(object):
-
-    def _execute(self, argv):
+    @classmethod
+    def _execute(cls, argv):
         if platform.system() != "Windows":
             return os.spawnve(os.P_WAIT, argv[0], argv, os.environ)
         else:

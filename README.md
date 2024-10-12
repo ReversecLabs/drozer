@@ -12,10 +12,6 @@ drozer is open source software, maintained by WithSecure, and can be downloaded 
 
 This is an BETA release of a rewritten drozer version; this version is updated to support python3.
 
-Currently, the following known issues are present:
-
-- Building of custom agents functionality will crash the drozer client. This functionality is considered out of scope for the beta release of the revived drozer project.
-
 ## Docker Container
 
 To help with making sure drozer can be run on all systems, a Docker container was created that has a working build of drozer.
@@ -92,6 +88,12 @@ drozer can be installed using Android Debug Bridge (adb).
 
 Download the latest drozer Agent [here](https://github.com/WithSecureLabs/drozer-agent/releases/latest).
 
+Or create a custom agent with
+```
+drozer agent set-apk --latest
+drozer agent interactive
+```
+Then install with
 ```shell
 adb install drozer-agent.apk
 ```

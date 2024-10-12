@@ -10,5 +10,5 @@ def on_agent(path, context):
     folder, search_path = get_folder_and_search_path(path, "/")
     folders = context.listFiles(folder)
     
-    return [s.replace(" ", "\ ") for s in get_suggestions(folder, search_path, map(lambda f: str(f), folders), "/", True)]
+    return [s.replace(" ", r"\ ") for s in get_suggestions(folder, search_path, map(lambda f: str(f), folders), "/", True)]
     

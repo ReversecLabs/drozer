@@ -10,7 +10,9 @@ dependencies = ["protobuf>=4.25.2",
     "twisted>=18.9.0",
     "service-identity",
     "distro",
-    "pyyaml"]
+    "pyyaml",
+    "readchar",
+    "ansi"]
 requires-python = ">=3.8"
 authors = [
     { name = "WithSecure", email = "drozer@withsecure.com" },

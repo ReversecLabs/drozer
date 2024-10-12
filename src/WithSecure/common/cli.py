@@ -94,7 +94,7 @@ class Base(object):
     def do_commands(self, arguments):
         """shows a list of all console commands"""
 
-        print("usage: %s", self.__doc__.strip(), end="\n")
+        print("usage:", self.__doc__.strip(), end="\n")
         print("available commands:")
         print(self.__get_commands_help())
 
@@ -121,7 +121,7 @@ class Base(object):
         commands = {}
 
         for command in self.__commands():
-            commands[command.replace("do_", "")] = getattr(self, command).__doc__.strip()
+            commands[command.replace("do_", "").replace("_", "-")] = getattr(self, command).__doc__.strip()
 
         return console.format_dict(commands, left_margin=2)
 
@@ -131,7 +131,7 @@ class Base(object):
         """
 
         try:
-            command = arguments.command
+            command = arguments.command.replace("-", "_")
 
             if "do_" + command in dir(self):
                 getattr(self, "do_" + command)(arguments)
