@@ -40,7 +40,7 @@ class SuperUser(file_system.FileSystem):
         Test whether any su binary is installed on the Agent.
         """
         
-        return (self.exists("/system/bin/su") or self.exists("/system/xbin/su"))
+        return self.isCommandInstalled('su')
             
     def isMinimalSuInstalled(self):
         """

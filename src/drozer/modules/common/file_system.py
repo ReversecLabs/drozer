@@ -68,6 +68,13 @@ class FileSystem(object):
         file_io = self.new("java.io.File", target)
 
         return file_io.exists()
+    
+    def isCommandInstalled(self, command):
+        """
+        Test whether a specified command binary is installed on the Agent.
+        """
+
+        return (self.exists("/system/bin/{}".format(command)) or self.exists("/system/xbin/{}".format(command)))
 
     def fileSize(self, source):
         """

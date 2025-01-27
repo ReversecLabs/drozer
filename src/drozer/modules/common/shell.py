@@ -51,6 +51,13 @@ class Shell(file_system.FileSystem, loader.ClassLoader):
                     raise
             
         shell.close()
+
+    def isFindInstalled(self):
+        """
+        Test whether the find binary is installed on the Agent.
+        """
+        
+        return self.isCommandInstalled('find')
             
     def __get_variables(self):
         return "; ".join(map(lambda k: "export %s=\"%s\"" % (k, self.variables[k]), self.variables))
