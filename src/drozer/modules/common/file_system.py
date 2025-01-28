@@ -74,7 +74,7 @@ class FileSystem(object):
         Test whether a specified command binary is installed on the Agent.
         """
 
-        return (self.exists("/system/bin/{}".format(command)) or self.exists("/system/xbin/{}".format(command)))
+        return (self.exists("/system/bin/{}".format(command)) or self.exists("/system/xbin/{}".format(command))) == True
 
     def fileSize(self, source):
         """
