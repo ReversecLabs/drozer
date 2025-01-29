@@ -1,6 +1,6 @@
 from drozer.modules import common, Module
 
-class SFlagBinaries(Module, common.BusyBox, common.Shell, common.SuperUser):
+class SFlagBinaries(Module, common.ToyBox, common.Shell, common.SuperUser):
 
     name = "Find suid/sgid binaries in the given folder (default is /system)."
     description = "Find suid/sgid binaries in the given folder (default is /system). Uses the method from http://hexesec.wordpress.com/2009/10/14/exploiting-suid-binaries/."
@@ -28,10 +28,10 @@ Discovered suid/sgid files in /system:
         if self.isFindInstalled():
             command = "find %s -type f \( -perm -04000 -o -perm -02000 \) \-exec ls {} \;" % arguments.target
         else:
-            if (self.isBusyBoxInstalled() == True):
-                command = self.busyboxPath() + " find %s -type f \( -perm -04000 -o -perm -02000 \) \-exec ls {} \;" % arguments.target
+            if (self.isToyBoxInstalled() == True):
+                command = self.toyboxPath() + " find %s -type f \( -perm -04000 -o -perm -02000 \) \-exec ls {} \;" % arguments.target
             else:
-                self.stderr.write("Since the Agent does not have a find binary, this command requires BusyBox to complete. Run tools.setup.busybox and then retry.\n")
+                self.stderr.write("Since the Agent does not have a find binary, this command requires ToyBox to complete. Run tools.setup.toybox and then retry.\n")
                 return
 
         privileged = arguments.privileged

@@ -31,8 +31,8 @@ This licence does not apply to the following components:
 
  - apktool located at /src/drozer/lib/apktool.jar, released under an Apache2
    License and is available at: https://github.com/iBotPeaches/Apktool
- - BusyBox located at /src/drozer/modules/tools/setup/
-   Released under a GPLv2 License, and available to download from: http://www.busybox.net/
+ - Toybox located at /src/drozer/modules/tools/setup/
+   Released under a 0BSD License, and available to download from: https://landley.net/toybox/
  - BouncyCastle, located at /src/drozer/ssl/bcprov-ext-jdk15on-1.46.jar
    Released under a modified MIT X11 License, and available to download
    from: http://www.bouncycastle.org/

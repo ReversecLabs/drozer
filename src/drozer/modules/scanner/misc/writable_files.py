@@ -1,6 +1,6 @@
 from drozer.modules import common, Module
 
-class WritableFiles(Module, common.BusyBox, common.Shell, common.SuperUser):
+class WritableFiles(Module, common.ToyBox, common.Shell, common.SuperUser):
 
     name = "Find world-writable files in the given folder"
     description = "Find world-writable files in the given folder"
@@ -23,10 +23,10 @@ Discovered world-writable files in /data:
         if self.isFindInstalled():
             command = "find %s \( -type b -o -type c -o -type f -o -type s \) -perm -o=w \-exec ls {} \;" % arguments.target
         else:
-            if (self.isBusyBoxInstalled() == True):
-                command = self.busyboxPath() + " find %s \( -type b -o -type c -o -type f -o -type s \) -perm -o=w \-exec ls {} \;" % arguments.target
+            if (self.isToyBoxInstalled() == True):
+                command = self.toyboxPath() + " find %s \( -type b -o -type c -o -type f -o -type s \) -perm -o=w \-exec ls {} \;" % arguments.target
             else:
-                self.stderr.write("Since the Agent does not have a find binary, this command requires BusyBox to complete. Run tools.setup.busybox and then retry.\n")
+                self.stderr.write("Since the Agent does not have a find binary, this command requires ToyBox to complete. Run tools.setup.toybox and then retry.\n")
                 return
 
         privileged = arguments.privileged            

