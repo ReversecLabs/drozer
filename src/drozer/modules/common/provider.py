@@ -181,6 +181,34 @@ class Provider(loader.ClassLoader):
             
             return return_val
         
+        def call(self, uri, method, argument=None, bundle=None):
+            """
+            Executes against a content provider's "call" method
+            """
+
+            client = self.__get_client(uri)
+            
+            if client == None:
+                raise ReflectionException("Could not get a ContentProviderClient for %s." % uri)
+            
+            cursor = None
+            
+            try:
+                cursor = client.call(method, argument, bundle)
+            except ReflectionException as e:
+
+                # yaynoteyay
+                # for some reason, ReflectionException doesn't have a `message` attribute
+                # so convert to string first
+                if str(e).startswith("Unknown Exception"):
+                    raise ReflectionException("Could not call %s." % uri)
+                else:
+                    raise
+            finally:  
+                self.__release(client)
+
+            return cursor
+        
         def __get_client(self, uri):
             try:
                 self.__must_release_client = True

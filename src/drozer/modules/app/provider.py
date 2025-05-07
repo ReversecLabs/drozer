@@ -437,3 +437,63 @@ class Update(Module, common.Provider):
         self.contentResolver().update(arguments.uri, values, arguments.selection, arguments.selection_args)
 
         self.stdout.write("Done.\n\n")
+
+class Call(Module, common.Provider):
+
+    name = "Call a call in a content provider"
+    description = "Call a call in a content provider"
+    examples = """Assuming that a Content Provider `call` method accepts the method `yaymethodyay`:
+
+    dz> run app.provider.call content://yayauthorityyay
+                --method "yaymethodyay"
+                --argument "yayargumentyay"
+                --bundle "S.yaystringyay=yayvalueyay;B.yaybooleanyay=false"
+
+    Done."""
+    author = "Yogehi (@yogehi) / Malicious Erection LLC"
+    date = "2025-05-07"
+    license = "BSD (3 clause)"
+    path = ["app", "provider"]
+    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+
+    def add_arguments(self, parser):
+        parser.add_argument("uri", help="the content provider URI that accepts a 'call'")
+        parser.add_argument("--method", default=None, help="specify an method string")
+        parser.add_argument("--argument", default=None, help="specify an argument string")
+        parser.add_argument("--bundle", default=None, help="specify a bundle extra")
+        
+
+    def execute(self, arguments):
+        yaybundleyay = self.new("android.os.Bundle")
+        if arguments.bundle != None:
+            # if bundle string ends with `;`, remove last `;`
+            if arguments.bundle.endswith(';'):
+                yaybundlestringyay = arguments.bundle[:-1]
+            else:
+                yaybundlestringyay = arguments.bundle
+            # parse bundle string
+            yaybundlearrayyay = yaybundlestringyay.split(';')
+            for yayitemyay in yaybundlearrayyay:
+                yayKeyyay = yayitemyay.split('=')[0]
+                yayValueyay = yayitemyay.split('=')[1]
+                if yayKeyyay.startswith("S."):
+                    yaybundleyay.putString(yayKeyyay[2:], self.arg(yayValueyay, obj_type="string"))
+                elif yayKeyyay.startswith("B."):
+                    yaybundleyay.putBoolean(yayKeyyay[2:], self.arg(yayValueyay.lower().startswith('t'), obj_type="boolean"))
+                elif yayKeyyay.startswith("b."):
+                    yaybundleyay.putByte(yayKeyyay[2:], self.arg(yayValueyay, obj_type="byte"))
+                elif yayKeyyay.startswith("c."):
+                    yaybundleyay.putChar(yayKeyyay[2:], self.arg(yayValueyay, obj_type="char"))
+                elif yayKeyyay.startswith("d."):
+                    yaybundleyay.putDouble(yayKeyyay[2:], self.arg(yayValueyay, obj_type="double"))
+                elif yayKeyyay.startswith("i."):
+                    yaybundleyay.putInt(yayKeyyay[2:], self.arg(yayValueyay, obj_type="int"))
+                elif yayKeyyay.startswith("f."):
+                    yaybundleyay.putFloat(yayKeyyay[2:], self.arg(yayValueyay, obj_type="float"))
+                elif yayKeyyay.startswith("l."):
+                    yaybundleyay.putLong(yayKeyyay[2:], self.arg(yayValueyay, obj_type="long"))
+                elif yayKeyyay.startswith("s."):
+                    yaybundleyay.putShort(yayKeyyay[2:], self.arg(yayValueyay, obj_type="short"))
+
+        yayencodedyay = self.contentResolver().call(arguments.uri, arguments.method, arguments.argument, yaybundleyay)
+        self.stdout.write(base64.b64decode(yayencodedyay).decode("utf-8", errors="ignore") + "\n")
