@@ -1,6 +1,11 @@
 import java.util.Set;
 import android.os.Bundle;
 
+/**
+ * yaynoteyay
+ * should use this class to do some minor stuff to java objects that can't be easily done in python
+ */
+
 public class HelperUtils {
 
     public String bundleToString(Bundle yaybundleyay) {
