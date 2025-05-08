@@ -186,8 +186,6 @@ class Provider(loader.ClassLoader):
             Executes against a content provider's "call" method
             """
 
-            yayutilyay = self.__module.loadClass("common/yayutilyay.apk", "yayutilyay")
-
             client = self.__get_client(uri)
             
             if client == None:
