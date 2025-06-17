@@ -41,8 +41,8 @@ Package: com.android.mms
   Classes:
     .ui.ComposeMessageActivity
 """
-    author = "Tyrone (@mwrlabs)"
-    date = "2014-10-31"
+    author = ["Tyrone (@mwrlabs)", "Miłosz Gaczkowski (@cyberMilosz)"]
+    date = "2025-06-17"
     license = "BSD (3-clause)"
     path = ["scanner", "activity"]
     permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
@@ -50,6 +50,9 @@ Package: com.android.mms
     def add_arguments(self, parser):
         parser.add_argument("-a", "--package", help="specify a package to search")
         parser.add_argument("-f", "--filter", action="store", dest="filter", default=None, help="filter term")
+        parser.add_argument("-u", "--unexported", action="store_true", default=False, help="include activities that are not exported")
+        parser.add_argument("-d", "--disabled", action="store_true", default=False, help="include disabled activities")
+        parser.add_argument("--exclude-aliases", action="store_true", default=False, help="exclude activity aliases")
         parser.add_argument("--debug", action="store_true", default=False, help="enable debug mode")
 
     def execute(self, arguments):
@@ -62,7 +65,7 @@ Package: com.android.mms
 
         for package in packages:
             try:
-                returned = self.getBrowsable(package.packageName)
+                returned = self.getBrowsable(package.packageName, arguments)
                 if (len(returned['uris']) > 0) or (len(returned['classNames']) > 0):
                     if arguments.filter:
                         # Make sure filter value is in returned schemes or package name
@@ -89,13 +92,44 @@ Package: com.android.mms
                 pass # amazing error checking
             
     # Get browsable activities that use data attribute
-    def getBrowsable(self, packagename):
+    def getBrowsable(self, packagename, arguments=[]):
         uris = []
         classNames = []
         manifest = self.getAndroidManifest(packagename)
         root = ET.fromstring(manifest)
+        activities = root.find('application').findall('activity')
 
-        for activity in root.find('application').findall('activity'):
+        # add aliases unless specifically told not to
+        if not arguments.exclude_aliases:
+            activities += root.find('application').findall('activity-alias')
+
+        for activity in activities:
+            unexported = False
+            disabled = False
+
+            # handle unexported activities
+            # NOTE: the logic here is a little funky. Before SDK 31, an activity that contains
+            # an intent filter will be exported by default (i.e., if you don't explicitly specify);
+            # if it does not contain an intent filter, then by default it will be unexported.
+            # in theory, the logic below will incorrectly identify some unexported activities as exported,
+            # but this doesn't matter since they weren't gonna listen any intent filters anyway.
+            # this is VERY POORLY DOCUMENTED, but see:
+            # https://developer.android.com/about/versions/12/behavior-changes-12#exported
+            #
+            # Basically, don't reuse this logic elsewhere unless you're 100% sure
+            if("exported" in activity.attrib and activity.attrib["exported"] == "false"):
+                unexported = True
+                #if not specifically requested, ignore
+                if not arguments.unexported:
+                    continue
+
+            # handle disabled activities
+            if("enabled" in activity.attrib and activity.attrib["enabled"] == "false"):
+                disabled = True
+                #if not specifically requested, ignore
+                if not arguments.disabled:
+                    continue
+
             for intentfilter in activity.findall('intent-filter'):
                 final = ""
                 foundBrowsable = False
@@ -106,6 +140,10 @@ Package: com.android.mms
 
                 if foundBrowsable:
                     name = activity.get('name')
+                    if unexported:
+                        name += " (unexported)"
+                    if disabled:
+                        name += " (disabled)"
                     if name not in classNames:
                         classNames.append(name)
 
