@@ -22,10 +22,10 @@ class ToyBox(shell.Shell):
             return os.path.join(os.path.dirname(__file__), "..", "tools", "setup","arm", "toybox")
         elif arch == "arm64":
             return os.path.join(os.path.dirname(__file__), "..", "tools", "setup","arm64", "toybox")
-        elif arch == "x86":
-            return os.path.join(os.path.dirname(__file__), "..", "tools", "setup","x86", "toybox")
         elif arch == "x86_64":
             return os.path.join(os.path.dirname(__file__), "..", "tools", "setup","x86_64", "toybox")
+        elif arch == "x86":
+            return os.path.join(os.path.dirname(__file__), "..", "tools", "setup","x86", "toybox")
         else:
             return None
 
