@@ -6,7 +6,7 @@ drozer allows you to search for security vulnerabilities in apps and devices by 
 
 drozer provides tools to help you use, share and understand public Android exploits.
 
-drozer is open source software, maintained by Reversec, and can be downloaded from: [https://labs.withsecure.com/tools/drozer/](https://labs.withsecure.com/tools/drozer/)
+drozer is open source software, maintained by Reversec. An introductory user guide can be found on [Reversec Labs](https://labs.reversec.com/tools/drozer/)
 
 ## NOTE
 
