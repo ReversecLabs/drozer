@@ -8,7 +8,7 @@ class Send(Module, common.Shell, common.SuperUser):
 This module sends a Java reverse shell to the Agent."""
     examples = ""
     author = ["Tyrone (@mwrlabs)", "Thomas Cross (@ReversecLabs)"]
-    date = "2013-07-25"
+    date = "2025-06-24"
     license = "BSD (3 clause)"
     path = ["shell"]
 
