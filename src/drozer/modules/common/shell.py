@@ -15,6 +15,15 @@ class Shell(file_system.FileSystem, loader.ClassLoader):
         ShellWrapper = self.loadClass("common/ShellWrapper.apk", "ShellWrapper")
 
         return ShellWrapper.execute("%s; %s" % (self.__get_variables(), command))
+
+    def reverseShell(self, command, address, port):
+        """
+        Execute a Reverse Shell command on the Agent.
+        """
+
+        ReverseShell = self.loadClass("common/ReverseShell.apk", "ReverseShell")
+
+        return ReverseShell.execute(command, address, port)
     
     def shellStart(self, command=""):
         """
@@ -51,6 +60,13 @@ class Shell(file_system.FileSystem, loader.ClassLoader):
                     raise
             
         shell.close()
+
+    def isFindInstalled(self):
+        """
+        Test whether the find binary is installed on the Agent.
+        """
+        
+        return self.isCommandInstalled('find')
             
     def __get_variables(self):
         return "; ".join(map(lambda k: "export %s=\"%s\"" % (k, self.variables[k]), self.variables))

@@ -24,7 +24,7 @@ all_tests = unittest.TestSuite((
   modules.import_conflict_resolver_test.ImportConflictResolverTestSuite(),
   modules.module_base_test.ModuleTestSuite(),
   #modules.common.assets
-  #modules.common.busy_box
+  #modules.common.toy_box
   #modules.common.file_system
   #modules.common.filtering
   #modules.common.formatter

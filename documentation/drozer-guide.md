@@ -518,7 +518,7 @@ It is left as an exercise to the reader to fully exploit Sieve’s CryptoService
 drozer provides a number of other modules that are useful during security assessments: 
 * `shell.start` - Start an interactive Linux shell on the device. 
 * `tools.file.upload` / `tools.file.download` - Allow files to be copied to/from the Android device. 
-* `tools.setup.busybox` / `tools.setup.minimalsu`  - Install useful binaries on the device. 
+* `tools.setup.toybox` / `tools.setup.minimalsu`  - Install useful binaries on the device. 
 
 For an exhaustive list, type `list` into your drozer Console.
 
