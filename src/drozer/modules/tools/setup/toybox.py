@@ -10,7 +10,7 @@ Toybox provides a number of *nix utilities that are missing from Android. Some m
 Typically, you require root access to the device to install Toybox. drozer can install it from its restrictive context. You can then use 'toybox' in the when executing shell commands from drozer to use it."""
 	examples = ""
 	author = ["Tyrone (@mwrlabs)", "Thomas Cross (@ReversecLabs)"]
-	date = "2012-12-12"
+	date = "2025-06-05"
 	license = "BSD (3 clause)"
 	path = ["tools", "setup"]
 
