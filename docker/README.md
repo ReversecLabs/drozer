@@ -1,6 +1,6 @@
 # Description
 
-Reversec's official Docker image for [drozer](https://labs.withsecure.com/tools/drozer)'s computer client.
+Reversec's official Docker image for [drozer](https://labs.reversec.com/tools/drozer)'s computer client.
 
 drozer allows you to search for security vulnerabilities in apps and devices by assuming the role of an app and interacting with the Android Runtime, other apps' IPC endpoints and the underlying OS. Its primary use case is simulating a rogue application on the device. A penetration tester does not have to develop an app with custom code to interface with a specific content provider. Instead, drozer can be used with little to no programming experience required to show the impact of letting certain components be exported on a device.
 
