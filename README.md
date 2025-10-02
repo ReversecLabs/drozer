@@ -15,6 +15,7 @@ This is an BETA release of a rewritten drozer version; this version is updated t
 Currently, the following known issues are present:
 
 - Building of custom agents functionality will crash the drozer client. This functionality is considered out of scope for the beta release of the revived drozer project.
+- **Android 10+ Background Execution Restrictions**: Due to Android's background activity start restrictions introduced in Android 10, drozer commands (such as starting activities) may not work when the drozer Agent app is running in the background. For best results, keep the drozer Agent app in the foreground during testing sessions. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#android-10-background-execution-limitations) for detailed workarounds.
 
 ## Docker Container
 

@@ -305,6 +305,9 @@ We also note that the service is debuggable, which means that we can attach a de
 
 ## 3.4 Launching Activities
 
+> **Note for Android 10+ Users**: Due to background activity start restrictions introduced in Android 10, ensure the drozer Agent app remains visible (in the foreground) on your device when launching activities. Commands may silently fail if the Agent is backgrounded. See the [Troubleshooting Guide](../TROUBLESHOOTING.md#android-10-background-execution-limitations) for details and workarounds.
+
+
 We can drill deeper into this attack surface by using some more specific commands. For instance, we can ask which activities are exported by Sieve:
 
 ```
