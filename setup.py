@@ -52,8 +52,8 @@ def make_apks():
                 basename, _ = filename.split('.')
                 d8_cmd = [d8, '--output', basename + '.zip', basename + '*.class', '--lib', sdk]
 
-                run(' '.join(javac_cmd), shell=True, cwd=root)
-                run(' '.join(d8_cmd), shell=True, cwd=root)
+                run(javac_cmd, cwd=root, check=True)
+                run(d8_cmd, cwd=root, check=True)
 
                 os.rename(os.path.join(root, basename + '.zip'), os.path.join(root, basename + '.apk'))
 
