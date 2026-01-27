@@ -2,7 +2,7 @@ import binascii
 import os
 import base64
 
-from WithSecure.common.list import chunk
+from reversec.common.list import chunk
 
 class FileSystem(object):
     """

@@ -3,7 +3,7 @@ import os
 import platform
 import sys
 
-from WithSecure.common import system
+from reversec.common import system
 
 class Configuration(object):
     """

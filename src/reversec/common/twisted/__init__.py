@@ -1,1 +1,1 @@
-from WithSecure.common.twisted.stream_receiver import StreamReceiver
+from reversec.common.twisted.stream_receiver import StreamReceiver

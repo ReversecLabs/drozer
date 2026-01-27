@@ -13,7 +13,7 @@ class Permissions(Module, common.PackageManager):
     date = "2014-06-17"
     license = "BSD (3 clause)"
     path = ["information"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("--permission", help="filter by specific permission")

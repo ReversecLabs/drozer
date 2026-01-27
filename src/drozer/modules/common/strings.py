@@ -9,7 +9,7 @@ class Strings(object):
         Searches a file for Strings, and returns them in an Array.
         """
 
-        StringsKlass = self.klass("com.WithSecure.jsolar.util.Strings")
+        StringsKlass = self.klass("com.reversec.jsolar.util.Strings")
         
         strings = StringsKlass.get(path)
 

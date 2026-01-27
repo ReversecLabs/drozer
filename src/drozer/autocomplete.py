@@ -7,7 +7,7 @@ import distro
 if distro.id() in ["Fedora", "CentOS Linux"]:
     os.putenv("TERM", "vt100")
 
-from WithSecure.common import argparse_completer
+from reversec.common import argparse_completer
 
 from drozer.console import Console
 from drozer.exploit.manager import ExploitManager

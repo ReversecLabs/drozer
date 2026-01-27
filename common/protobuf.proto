@@ -1,5 +1,5 @@
 
-package com.WithSecure.jsolar.api;
+package com.reversec.jsolar.api;
 
 option optimize_for = SPEED;
 

@@ -11,7 +11,7 @@ class SqlTables(Module, common.FileSystem, common.PackageManager, common.Provide
     date = "2013-01-23"
     license = "BSD (3 clause)"
     path = ["scanner", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-a", "--package", "--uri", dest="package_or_uri", help="specify a package, or content uri to search", metavar="<package or uri>")

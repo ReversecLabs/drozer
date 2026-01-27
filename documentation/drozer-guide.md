@@ -14,7 +14,7 @@ Another resource which makes extensive use of drozer in its Android chapters is 
 
 drozer allows you to assume the role of an Android app and interact with other apps. It can do anything that an installed application can do, such as make use of Android’s Inter-Process Communication (IPC) mechanism and interact with the underlying operating system. 
 
-drozer is open-source software, released under a BSD license and maintained by WithSecure. To get in touch with the project, please use our GitHub project at [https://github.com/WithSecureLabs/drozer](https://github.com/WithSecureLabs/drozer).
+drozer is open-source software, released under a BSD license and maintained by Reversec. To get in touch with the project, please use our GitHub project at [https://github.com/ReversecLabs/drozer](https://github.com/ReversecLabs/drozer).
 
 ## 1.2 Conventions
 
@@ -64,7 +64,7 @@ libexpat1 libexpat1-dev libpython3-dev python-is-python3 zip default-jdk
 Then build drozer for Python wheel
 
 ```
-git clone https://github.com/WithSecureLabs/drozer.git
+git clone https://github.com/ReversecLabs/drozer.git
 cd drozer
 python setup.py bdist_wheel
 ```
@@ -79,7 +79,7 @@ pip install dist/drozer-<version>-py3-none-any.whl
 On any Arch-based installation, until proper pkgbuilds and pip packages are created, please use a [virtualenv](https://wiki.archlinux.org/title/Python/Virtual_environment).
 
 ```
-git clone https://github.com/WithSecureLabs/drozer.git
+git clone https://github.com/ReversecLabs/drozer.git
 cd drozer
 virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
@@ -89,21 +89,21 @@ sudo pip install dist/drozer-<version>-py3-none-any.whl
 
 ### 2.1.4 Docker
 
-WithSecure maintains a [Docker image](https://hub.docker.com/r/withsecurelabs/drozer) which can be pulled from the Docker Hub by running:
+Reversec maintains a [Docker image](https://hub.docker.com/r/drozerdocker/drozer) which can be pulled from the Docker Hub by running:
 
 ```
-docker pull withsecurelabs/drozer
+docker pull drozerdocker/drozer
 ```
 
-Alternatively, to build this container yourself, use the `docker build` command, pointing it towards WithSecure's GitHub repository:
+Alternatively, to build this container yourself, use the `docker build` command, pointing it towards Reversec's GitHub repository:
 
 ```
-docker build -t withsecurelabs/drozer https://github.com/WithSecureLabs/drozer.git#develop:docker
+docker build -t drozerdocker/drozer https://github.com/ReversecLabs/drozer.git#develop:docker
 ```
 
-Refer to the [Run and Connect instructions](https://hub.docker.com/r/withsecurelabs/drozer) within the image's documentation to get up and running.
+Refer to the [Run and Connect instructions](https://hub.docker.com/r/drozerdocker/drozer) within the image's documentation to get up and running.
 
-The source Dockerfile is available [here](https://github.com/WithSecureLabs/drozer/blob/develop/docker/Dockerfile).
+The source Dockerfile is available [here](https://github.com/ReversecLabs/drozer/blob/develop/docker/Dockerfile).
 
 ### 2.1.5 Testing the installation
 
@@ -132,7 +132,7 @@ Commands:
 
 ### 2.2 Installing the Agent
 
-The drozer Agent can be obtained from the [drozer-agent](https://github.com/WithSecureLabs/drozer-agent) repository as an Android Package (.apk) file. This can be installed onto your emulator or device using Android Debug Bridge (adb):
+The drozer Agent can be obtained from the [drozer-agent](https://github.com/ReversecLabs/drozer-agent) repository as an Android Package (.apk) file. This can be installed onto your emulator or device using Android Debug Bridge (adb):
 
 ```
 $ adb install agent.apk
@@ -159,7 +159,7 @@ $ drozer console connect --server <phone's IP address>
 If you are using the Docker container, the equivalent command would be:
 
 ```
-docker run --net host -it withsecurelabs/drozer console connect --server <phone's IP address>
+docker run --net host -it drozerdocker/drozer console connect --server <phone's IP address>
 ```
 
 ### 2.3.2 Option 2: Connect to the phone via USB
@@ -232,8 +232,7 @@ Each module implements a very specific function, e.g. listing all packages insta
 
 Once you have successfully installed drozer, and have established a session between your PC and device, you will no doubt want to find out how to use drozer.
 
-This section guides you through how to perform a limited section of an assessment of a vulnerable app. The name of the app being used is Sieve, which can be downloaded from the WithSecure Labs website: 
-yaytagyay insert website
+This section guides you through how to perform a limited section of an assessment of a vulnerable app. The name of the app being used is Sieve, which can be downloaded from the Reversec Labs website: https://github.com/ReversecLabs/sieve
 
 ## 3.1 Sieve
 

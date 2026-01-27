@@ -2,7 +2,7 @@ import os
 import OpenSSL
 import random
 
-from WithSecure.common import fs, system
+from reversec.common import fs, system
 
 from drozer.configuration import Configuration
 from drozer.ssl import ca

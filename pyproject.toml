@@ -14,7 +14,7 @@ dependencies = ["protobuf>=4.25.2",
     "requests"]
 requires-python = ">=3.8"
 authors = [
-    { name = "WithSecure", email = "drozer@withsecure.com" },
+    { name = "reversec", email = "drozer@reversec.com" },
 ]
 description = "The Leading Android Security Testing Framework"
 readme = "README.md"
@@ -28,10 +28,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://labs.withsecure.com/tools/drozer/"
-Documentation = "https://labs.withsecure.com/tools/drozer/"
-Repository = "https://github.com/WithSecureLabs/drozer.git"
-Issues = "https://github.com/WithSecureLabs/drozer/issues"
+Homepage = "https://labs.reversec.com/tools/drozer/"
+Documentation = "https://labs.reversec.com/tools/drozer/"
+Repository = "https://github.com/ReversecLabs/drozer.git"
+Issues = "https://github.com/ReversecLabs/drozer/issues"
 
 [project.scripts]
 drozer = "drozer.main:main"
@@ -40,7 +40,7 @@ drozer-complete = "drozer.autocomplete:main"
 
 [tool.setuptools.package-dir]
 drozer = "src/drozer"
-WithSecure = "src/WithSecure"
+reversec = "src/reversec"
 pysolar = "src/pysolar"
 
 [tool.setuptools.dynamic]

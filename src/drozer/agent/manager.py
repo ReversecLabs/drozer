@@ -1,5 +1,5 @@
 import itertools
-from WithSecure.common import cli
+from reversec.common import cli
 import yaml
 from drozer import android, meta
 from drozer.agent import builder, manifest

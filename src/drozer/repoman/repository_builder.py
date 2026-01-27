@@ -5,7 +5,7 @@ import zipfile
 
 from xml.etree import ElementTree as xml
 
-from WithSecure.common import fs
+from reversec.common import fs
 
 class RepositoryBuilder(object):
     """

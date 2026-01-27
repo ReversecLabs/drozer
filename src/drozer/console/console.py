@@ -7,7 +7,7 @@ from pysolar.api.protobuf_pb2 import Message
 from pysolar.api.transport.exceptions import ConnectionError
 from pysolar.reflection import ReflectionException
 
-from WithSecure.common import cli, path_completion
+from reversec.common import cli, path_completion
 
 from drozer import meta
 from drozer.api.formatters import SystemResponseFormatter
@@ -75,8 +75,8 @@ class Console(cli.Base):
             except KeyboardInterrupt:
                 print("Caught SIGINT, terminating your session.")
             except ReflectionException as e:
-                if("cannot resolve com.WithSecure.dz.Agent" in str(e)):
-                    sys.stderr.write("It seems that you are running an unsupported version of drozer-agent. Please update your copy.\n\nTo download the latest drozer-agent visit:\nhttps://github.com/WithSecureLabs/drozer-agent/releases\n")
+                if("cannot resolve com.reversec.dz.Agent" in str(e)):
+                    sys.stderr.write("It seems that you are running an unsupported version of drozer-agent. Please update your copy.\n\nTo download the latest drozer-agent visit:\nhttps://github.com/ReversecLabs/drozer-agent/releases\n")
                 if(arguments.debug):
                     self.handleException(e, arguments, session)
             except Exception as e:

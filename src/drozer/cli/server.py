@@ -3,7 +3,7 @@
 import logging
 import sys
 
-from WithSecure.common import logger
+from reversec.common import logger
 
 from drozer.server import Server
 

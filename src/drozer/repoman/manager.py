@@ -1,4 +1,4 @@
-from WithSecure.common import cli, console, text
+from reversec.common import cli, console, text
 
 from drozer.repoman.installer import ModuleInstaller
 from drozer.repoman.remotes import Remote, NetworkException, UnknownRemote

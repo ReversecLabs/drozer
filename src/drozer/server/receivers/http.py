@@ -1,4 +1,4 @@
-from WithSecure.common.twisted import StreamReceiver
+from reversec.common.twisted import StreamReceiver
 
 class HttpReceiver(StreamReceiver):
     """

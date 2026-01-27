@@ -5,7 +5,7 @@ import os
 import subprocess
 
 from sys import platform
-from WithSecure.common import fs, system
+from reversec.common import fs, system
 
 class ClassBuilder(object):
     """

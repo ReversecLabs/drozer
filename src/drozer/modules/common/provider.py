@@ -370,24 +370,32 @@ class Provider(loader.ClassLoader):
                             paths.add(str(permission.getPath()))
                             
                     # TODO: try to handle wildcard paths sensibly, like /contacts/.*/xyz
-                    
+
                     for authority in provider.authority.split(";"):
                         uris.add("content://%s/" % authority)
                         
                         for path in paths:
                             uris.add("content://%s%s" % (authority, path))
-        for (path, content_uris) in self.findContentUris(package.packageName):
-            content_uris = list(content_uris)
-            if len(content_uris) > 0:
-                for uri in content_uris:
-                    uris.add(uri[uri.upper().find("CONTENT"):])
-        
-        # one more pass, make sure we get the / and non-/ version of each URI
-        for uri in set(uris):
-            if uri.endswith("/"):
-                uris.add(uri[uri.upper().find("CONTENT"):-1])
-            else:
-                uris.add(uri[uri.upper().find("CONTENT"):] + "/")
+
+
+        try:
+            for (path, content_uris) in self.findContentUris(package.packageName):
+                content_uris = list(content_uris)
+                if len(content_uris) > 0:
+                    for uri in content_uris:
+                        uris.add(uri[uri.upper().find("CONTENT"):])
+        except Exception as e:
+            print("src/drozer/modules/common/provider.py - line ~390: %s" % e)
+
+        try:
+            # one more pass, make sure we get the / and non-/ version of each URI
+            for uri in set(uris):
+                if uri.endswith("/"):
+                    uris.add(uri[uri.upper().find("CONTENT"):-1])
+                else:
+                    uris.add(uri[uri.upper().find("CONTENT"):] + "/")
+        except Exception as e:
+            print("src/drozer/modules/common/provider.py - line ~400: %s" % e)
 
         return sorted(uris)
         

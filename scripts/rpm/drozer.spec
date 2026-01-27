@@ -18,8 +18,8 @@ Version:	%{version}
 Release:	1
 # For a breakdown of the licensing, see PACKAGE-LICENSING
 License:	BSD and GPL2+ and Apache2 and MITx11
-Group:		MWR InfoSecurity
-URL:		https://labs.mwrinfosecurity.com
+Group:		Reversec
+URL:		https://labs.reversec.com
 Source:		%{name}-%{version}.tar.gz
 Requires:	python >= 2.7
 Requires:	protobuf-python >= 2.4.1
@@ -35,8 +35,8 @@ AutoReq:	0
 
 %description
 drozer enables you to search for security vulnerabilities in apps and devices by assuming the role of an app and interacting with the Dalvik VM, other apps’ IPC endpoints and the underlying OS.
-drozer provides tools to help you use and share public Android exploits. It helps you to deploy a drozer agent by using weasel – MWR’s advanced exploitation payload.
-For the latest Mercury updates, follow @mwrdrozer.
+drozer provides tools to help you use and share public Android exploits. It helps you to deploy a drozer agent by using weasel – Reversec’s advanced exploitation payload.
+For the latest Mercury updates, follow @reversec.
 Features
 drozer allows you to use dynamic analysis during an Android security assessment. By assuming the role of an Android app you can:
 *find information about installed packages.
@@ -44,7 +44,7 @@ drozer allows you to use dynamic analysis during an Android security assessment.
 *use a proper shell to play with the underlying Linux OS (from the content of an unprivileged application).
 *check an app’s attack surface, and search for known vulnerabilities.
 *create new modules to share your latest findings on Android.
-drozer’s remote exploitation features provide a unified framework for sharing Android payloads and exploits. It helps to reduce the time needed for vulnerability assessments and mobile red-teaming exercises, and includes the outcome of some of MWR’s cutting-edge research into advanced Android payloads and exploits.
+drozer’s remote exploitation features provide a unified framework for sharing Android payloads and exploits. It helps to reduce the time needed for vulnerability assessments and mobile red-teaming exercises, and includes the outcome of some of Reversec’s cutting-edge research into advanced Android payloads and exploits.
 How it Works
 drozer does all of this over the network: it does not require ADB.
 

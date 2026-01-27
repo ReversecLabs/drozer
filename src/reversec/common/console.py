@@ -2,7 +2,7 @@ import os
 import platform
 import struct
 
-from WithSecure.common import text
+from reversec.common import text
 
 
 # Utility methods for calculating the size of a console.

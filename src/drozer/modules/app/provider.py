@@ -16,7 +16,7 @@ class Columns(Module, common.Provider, common.TableFormatter):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider uri to query")
@@ -45,7 +45,7 @@ class Delete(Module, common.Provider):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider uri to query")
@@ -69,7 +69,7 @@ class Download(Module, common.Provider):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider URI to read a file through")
@@ -125,7 +125,7 @@ This module uses a number of strategies to identify a content URI, including ins
     date = "2012-13-18"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("package", help="the package to search for content provider uris")
@@ -177,7 +177,7 @@ Finding content providers that do not require permissions to read/write:
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     PatternMatcherTypes = { 0: "PATTERN_LITERAL", 1: "PATTERN_PREFIX", 2: "PATTERN_SIMPLE_GLOB" }
 
@@ -268,7 +268,7 @@ class Insert(Module, common.Provider):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider uri to insert into")
@@ -335,7 +335,7 @@ Querying, with a WHERE clause in the SELECT statement:
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider uri to query")
@@ -367,7 +367,7 @@ class Read(Module, common.Provider):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider URI to read a file through")
@@ -395,7 +395,7 @@ class Update(Module, common.Provider):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider uri to update in")
@@ -454,7 +454,7 @@ class Call(Module, common.Provider):
     date = "2025-05-07"
     license = "BSD (3 clause)"
     path = ["app", "provider"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("uri", help="the content provider URI that accepts a 'call'")

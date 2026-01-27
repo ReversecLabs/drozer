@@ -29,7 +29,7 @@ List exported services with no permissions required to interact with it:
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "service"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-a", "--package", default=None, help="specify the package to inspect")
@@ -121,7 +121,7 @@ NB: by default, this module will wait 20 seconds for a reply."""
     date = "2013-05-20"
     license = "BSD (3 clause)"
     path = ["app", "service"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
     
     def add_arguments(self, parser):
         parser.add_argument("package", help="the package containing the target service")
@@ -180,7 +180,7 @@ For more information on how to formulate an Intent, type 'help intents'."""
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "service"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         android.Intent.addArgumentsTo(parser)
@@ -207,7 +207,7 @@ class Stop(Module):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "service"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         android.Intent.addArgumentsTo(parser)
