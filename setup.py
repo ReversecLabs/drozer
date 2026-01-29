@@ -20,23 +20,35 @@ def clear_apks():
 def make_apks():
     pwd = os.path.join('src', 'drozer', 'modules')
 
-    if 'ANDROID_SDK' not in os.environ:
-        # raise Exception("ANDROID_SDK environment variable not set")
+    # if neither the sdk nor d8 is set in the local env, use the embedded versions to avoid version mismatch
+    if 'ANDROID_SDK' not in os.environ or 'D8' not in os.environ:
         sdk = os.path.join('src', 'drozer', 'lib', 'android.jar')
         sdk = os.path.abspath(sdk)
-    else:
-        sdk = os.environ['ANDROID_SDK']
 
-    if 'D8' not in os.environ:
-        # raise Exception("D8 environment variable not set")
         d8 = os.path.join('src', 'drozer', 'lib', 'd8')
         d8 += '.bat' if sys.platform == 'win32' else ''
         d8 = os.path.abspath(d8)
-    else:
-        d8 = os.environ['D8']
 
-    if which('javac') is None:
-        raise Exception("javac not installed, unable to compile APKs")
+        javac_bin = os.path.join('src', 'drozer', 'lib', 'javac')
+        javac_bin += '.exe' if sys.platform == 'win32' else ''
+    else:
+        if 'ANDROID_SDK' not in os.environ:
+            # raise Exception("ANDROID_SDK environment variable not set")
+            sdk = os.path.join('src', 'drozer', 'lib', 'android.jar')
+            sdk = os.path.abspath(sdk)
+        else:
+            sdk = os.environ['ANDROID_SDK']
+
+        if 'D8' not in os.environ:
+            # raise Exception("D8 environment variable not set")
+            d8 = os.path.join('src', 'drozer', 'lib', 'd8')
+            d8 += '.bat' if sys.platform == 'win32' else ''
+            d8 = os.path.abspath(d8)
+        else:
+            d8 = os.environ['D8']
+
+        if which('javac') is None:
+            raise Exception("javac not installed, unable to compile APKs")
 
     # If apks exist, delete them and generate new ones
     clear_apks()
@@ -45,15 +57,20 @@ def make_apks():
     for root, _, filenames in os.walk(pwd):
         for filename in filenames:
             if fnmatch(filename, "*.java"):
+
                 # Compile java
                 javac_cmd = ['javac', '-cp', sdk, filename]
+                compile_java = run(' '.join(javac_cmd), shell=True, cwd=root)
+                if compile_java.returncode != 0:
+                    raise Exception("[ERROR] - failed to compile %s" % filename)
+
 
                 # Build apk
                 basename, _ = filename.split('.')
                 d8_cmd = [d8, '--output', basename + '.zip', basename + '*.class', '--lib', sdk]
-
-                run(' '.join(javac_cmd), shell=True, cwd=root)
-                run(' '.join(d8_cmd), shell=True, cwd=root)
+                build_apk = run(' '.join(d8_cmd), shell=True, cwd=root)
+                if build_apk.returncode != 0:
+                    raise Exception("[ERROR] - failed to build %s apk" % basename)
 
                 os.rename(os.path.join(root, basename + '.zip'), os.path.join(root, basename + '.apk'))
 
