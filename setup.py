@@ -46,7 +46,7 @@ def make_apks():
         for filename in filenames:
             if fnmatch(filename, "*.java"):
                 # Compile java
-                javac_cmd = ['javac', '-cp', sdk, filename]
+                javac_cmd = ['javac', '--release', '11', '-cp', sdk, filename]
 
                 # Build apk
                 basename, _ = filename.split('.')
