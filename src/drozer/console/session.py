@@ -696,13 +696,15 @@ class Session(cmd.Cmd):
         self.pop_completer()
     
     def __print_banner(self):
-        x = random.randint(0,100)
+        x = random.randint(0,200)
         if x == 69:
             self.__print_banner2()
         elif x == 42:
             self.__print_banner3()
-        else:
+        elif x == 200:
             self.__print_banner4()
+        else:
+            self.__print_banner1()
 
     def __print_banner1(self):
         print("            ..                    ..:."      )
