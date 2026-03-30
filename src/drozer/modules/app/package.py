@@ -19,7 +19,7 @@ class AttackSurface(Module, common.Filters, common.PackageManager):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("package", help="the identifier of the package to inspect")
@@ -96,7 +96,7 @@ Finding all packages with the "INSTALL_PACKAGES" permission:
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-a", "--package", default=None, help="the identifier of the package to inspect")
@@ -265,7 +265,7 @@ class LaunchIntent(Module, common.PackageManager):
     date = "2013-03-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("package", help="the identifier of the package to inspect")
@@ -336,7 +336,7 @@ class List(Module, common.PackageManager):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-d", "--defines-permission", default=None, help="filter by the permissions a package defines")
@@ -370,9 +370,9 @@ class Manifest(Module, common.Assets):
     description = "Retrieves AndroidManifest.xml from an installed package."
     examples = """Getting the manifest for drozer
 
-    dz> run app.package.manifest com.WithSecure.dz
+    dz> run app.package.manifest com.reversec.dz
 
-    <manifest versionCode="2" versionName="1.1" package="com.WithSecure.dz">
+    <manifest versionCode="2" versionName="1.1" package="com.reversec.dz">
       <uses-sdk minSdkVersion="8" targetSdkVersion="4">
       </uses-sdk>
       <uses-permission name="android.permission.INTERNET">
@@ -384,7 +384,7 @@ class Manifest(Module, common.Assets):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("package", help="the identifier of the package")
@@ -431,7 +431,7 @@ class Native(Module, common.ClassLoader, common.PackageManager):
     date = "2013-03-23"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("package", help="the identifier of the package")
@@ -484,7 +484,7 @@ class SharedUID(Module, common.PackageManager):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-u", "--uid", default=None, help="specify uid")

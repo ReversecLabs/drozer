@@ -9,7 +9,7 @@ class Debuggable(Module, common.Filters, common.PackageManager):
     date = "2012-11-06"
     license = "BSD (3 clause)"
     path = ["app", "package"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     FLAG_DEBUGGABLE = 0x00000002
 

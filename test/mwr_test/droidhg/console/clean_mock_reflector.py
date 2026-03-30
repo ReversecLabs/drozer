@@ -5,7 +5,7 @@ class MockReflector():
         self.cache_delete_valid = [MockFile("thisisdex.dex"), MockFile("thisisapk.apk"), MockFile(".dex"), MockFile(".apk"), MockFile("dex"), MockFile("apk"), MockFile("somefile"), MockFile("fakedex.dexz"), MockFile("fakeapk.apkz")]
         self.klass = MockKlass(self.cache_delete_valid)
     
-    def resolve(self,klass='com.WithSecure.droidhg.Agent'):
+    def resolve(self,klass='com.reversec.droidhg.Agent'):
         return self.klass
 
 

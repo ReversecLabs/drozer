@@ -13,15 +13,15 @@ WARNING: This minimal version of the su binary is completely unprotected, meanin
     dz> run tools.setup.minimalsu
     [*] Uploaded minimal-su
     [*] Uploaded install-minimal-su.sh
-    [*] chmod 770 /data/data/com.WithSecure.dz/install-minimal-su.sh
-    [*] Ready! Execute /data/data/com.WithSecure.dz/install-minimal-su.sh from root context to install su
+    [*] chmod 770 /data/data/com.reversec.dz/install-minimal-su.sh
+    [*] Ready! Execute /data/data/com.reversec.dz/install-minimal-su.sh from root context to install su
     
     ...insert root exploit here...
-    u0_a95@android:/data/data/com.WithSecure.dz # /data/data/com.WithSecure.dz/install-minimal-su.sh
+    u0_a95@android:/data/data/com.reversec.dz # /data/data/com.reversec.dz/install-minimal-su.sh
     Done. You can now use `su` from a shell.
-    u0_a95@android:/data/data/com.WithSecure.dz # exit
-    u0_a95@android:/data/data/com.WithSecure.dz $ su
-    u0_a95@android:/data/data/com.WithSecure.dz #
+    u0_a95@android:/data/data/com.reversec.dz # exit
+    u0_a95@android:/data/data/com.reversec.dz $ su
+    u0_a95@android:/data/data/com.reversec.dz #
     """
     author = "Tyrone (@mwrlabs)"
     date = "2013-12-12"

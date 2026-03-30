@@ -31,7 +31,7 @@ class Shell(file_system.FileSystem, loader.ClassLoader):
         first command.
         """
         try:
-            shell = self.new("com.WithSecure.jsolar.util.Shell")
+            shell = self.new("com.reversec.jsolar.util.Shell")
             in_shell = True
         except ReflectionException as e:
             raise e

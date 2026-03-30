@@ -45,7 +45,7 @@ Package: com.android.mms
     date = "2025-06-17"
     license = "BSD (3-clause)"
     path = ["scanner", "activity"]
-    permissions = ["com.WithSecure.dz.permissions.GET_CONTEXT"]
+    permissions = ["com.reversec.dz.permissions.GET_CONTEXT"]
 
     def add_arguments(self, parser):
         parser.add_argument("-a", "--package", help="specify a package to search")

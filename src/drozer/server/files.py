@@ -1,6 +1,6 @@
 import re
 
-from WithSecure.common import fs
+from reversec.common import fs
 
 from drozer.server.receivers.http import HTTPResponse
 

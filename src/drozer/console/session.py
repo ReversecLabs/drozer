@@ -10,10 +10,10 @@ from pysolar.api.protobuf_pb2 import Message
 from pysolar.api.transport.exceptions import ConnectionError
 from pysolar.reflection import Reflector
 
-from WithSecure.common import cmd_ext as cmd
-from WithSecure.common import console
-from WithSecure.common.stream import ColouredStream, DecolouredStream
-from WithSecure.common.text import wrap
+from reversec.common import cmd_ext as cmd
+from reversec.common import console
+from reversec.common.stream import ColouredStream, DecolouredStream
+from reversec.common.text import wrap
 
 from drozer import meta
 from drozer.configuration import Configuration
@@ -111,7 +111,7 @@ class Session(cmd.Cmd):
 
     def context(self):
         if self.has_context():
-            return self.reflector.resolve("com.WithSecure.dz.Agent").getContext()
+            return self.reflector.resolve("com.reversec.dz.Agent").getContext()
         else:
             return None
         
@@ -195,7 +195,7 @@ class Session(cmd.Cmd):
 
         self.stdout.write("Core Contributors:\n")
         for contributor in [
-            'WithSecure Labs (@withconsulting)', 
+            'Reversec Labs (https://labs.reversec.com/)',
             'Ken Gannon (@Yogehi)', 
             'William Ben Embarek (@willbenem)', 
             'Miłosz Gaczkowski (@cyberMilosz)', 
@@ -369,7 +369,7 @@ class Session(cmd.Cmd):
             self.stdout.write("Has ApplicationContext: YES\n")
             self.stdout.write("Available Permissions:\n")
             for permission in sorted(self.permissions()):
-                if permission not in ["GET_CONTEXT", "com.WithSecure.dz.permissions.GET_CONTEXT", "com.mwr.dz.permissions.GET_CONTEXT"]:
+                if permission not in ["GET_CONTEXT", "com.reversec.dz.permissions.GET_CONTEXT", "com.mwr.dz.permissions.GET_CONTEXT"]:
                     self.stdout.write(" - %s\n" % (permission))
         else:
             self.stdout.write("Has ApplicationContext: NO\n")
@@ -536,7 +536,7 @@ class Session(cmd.Cmd):
 
         For Website URIs, use either 'http://' or 'https://' format of URIs:
 
-          --extra parcelable yaywebsiteyay http://www.withsecure.com
+          --extra parcelable yaywebsiteyay http://www.reversec.com
 
         For Intents, use the 'intent://' format of URI:
 
@@ -548,7 +548,7 @@ class Session(cmd.Cmd):
     
     def has_context(self):
         if self.__has_context == None:
-            self.__has_context = not self.reflector.resolve("com.WithSecure.dz.Agent").getContext() == None
+            self.__has_context = not self.reflector.resolve("com.reversec.dz.Agent").getContext() == None
             
         return self.__has_context == True
     
@@ -572,7 +572,7 @@ class Session(cmd.Cmd):
                     if (packageManager.checkPermission(str(permission), packageName) == pm.PERMISSION_GRANTED):
                         self.__permissions.append(str(permission))
             
-            self.__permissions.append("com.WithSecure.dz.permissions.GET_CONTEXT")
+            self.__permissions.append("com.reversec.dz.permissions.GET_CONTEXT")
             self.__permissions.append("com.mwr.dz.permissions.GET_CONTEXT")
             self.__permissions.append("GET_CONTEXT")
         elif self.__permissions == None:
@@ -696,11 +696,13 @@ class Session(cmd.Cmd):
         self.pop_completer()
     
     def __print_banner(self):
-        x = random.randint(0,100)
+        x = random.randint(0,200)
         if x == 69:
             self.__print_banner2()
         elif x == 42:
             self.__print_banner3()
+        elif x == 200:
+            self.__print_banner4()
         else:
             self.__print_banner1()
 
@@ -719,6 +721,23 @@ class Session(cmd.Cmd):
         print("     .torandroidsnemesisandprotectorandroid.")
         print("     .snemisisandprotectorandroidsnemesisan:")
         print("     .dprotectorandroidsnemesisandprotector.")
+        print("")
+
+    def __print_banner4(self):
+        print("           .:..                    .."       )
+        print("            ..r.                  ..o.."     )
+        print("             dn..  . ....... .  ..a.."       )
+        print("              rp..dnasisemensdi..or"         )
+        print("              .emendsiordnarotceto."         )
+        print("           .+sdiorndnarotcetorpdnasis,."     )
+        print("        .:nsdiordnarotcetorpdnasisemen.."    )
+        print("       ..semensdiordnarotcetorpdnasiseme."   )
+        print("       .mensdi,..,ordnayaycetor,..,pdnasi.." )
+        print("      .sisimens..diordnarotcetor..pdnasisi." )
+        print("     .cetorpdnasisimensdiordnarotcetorpdna, ")
+        print("     .diordnarotcetorpdnasisemensdiordnarot.")
+        print("     :nasisemensdiordnarotcetorpdnasisimens.")
+        print("     .rotcetorpdnasisemensdiordnarotcetorpd.")
         print("")
 
     # You found the easter egg!

@@ -1,7 +1,7 @@
 import argparse
 import re
 
-from WithSecure.common import path_completion
+from reversec.common import path_completion
 
 
 class ArgumentParserCompleter(object):

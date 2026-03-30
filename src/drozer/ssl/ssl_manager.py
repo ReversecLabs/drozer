@@ -1,6 +1,6 @@
 import os
 
-from WithSecure.common import cli
+from reversec.common import cli
 
 from drozer import meta
 from drozer.ssl.provider import Provider

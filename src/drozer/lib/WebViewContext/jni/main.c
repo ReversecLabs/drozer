@@ -4,7 +4,7 @@
 #include <jni.h>
 #include <android/log.h>
 
-#define LOG_TAG "com.mwr.dz"
+#define LOG_TAG "com.reversec.dz"
 
 #define LOGD(LOG_TAG, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGV(LOG_TAG, ...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
@@ -19,7 +19,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *pvt)
     jmethodID method;
     jobject activityThread, context, objPattern, objMatcher;
     jstring match, pattern, strResult, file_path, jar_file, string_host, package_name;
-    jstring agent_class = (*env)->NewStringUTF(env, "com.mwr.dz.Agent");
+    jstring agent_class = (*env)->NewStringUTF(env, "com.reversec.dz.Agent");
     const char *result[1035];
     const char *filePath[1024];
     const char *jarFile[1024];

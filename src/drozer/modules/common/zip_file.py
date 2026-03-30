@@ -10,7 +10,10 @@ class ZipFile(loader.ClassLoader):
         Extract a file (target) from a zipped archive (source) and save it to
         the file system (destination).
         """
+        try:
+            ZipUtil = self.loadClass("common/ZipUtil.apk", "ZipUtil")
+        except Exception as e:
+            print("\n\n--ERROR--  zip_file.py error: %s\n\n" % e)
 
-        ZipUtil = self.loadClass("common/ZipUtil.apk", "ZipUtil")
 
         return ZipUtil.unzip(target, source, destination)

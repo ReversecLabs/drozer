@@ -1,4 +1,4 @@
-from WithSecure.common.path_completion import complete as on_console,get_folder_and_search_path, get_suggestions
+from reversec.common.path_completion import complete as on_console,get_folder_and_search_path, get_suggestions
 
 def on_agent(path, context):
     """

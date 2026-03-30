@@ -1,6 +1,6 @@
 from pysolar.api import Frame
 
-from WithSecure.common.twisted import StreamReceiver
+from reversec.common.twisted import StreamReceiver
 
 class FrameReceiver(StreamReceiver):
     """

@@ -21,8 +21,8 @@ import shlex
 import sys
 import textwrap
 
-from WithSecure.common import system
-from WithSecure.common.text import wrap
+from reversec.common import system
+from reversec.common.text import wrap
 
 
 class Cmd(cmd.Cmd):
@@ -280,9 +280,9 @@ class Cmd(cmd.Cmd):
             latest, date = meta.latest_version()
             if latest is not None:
                 if meta.version > latest:
-                    print("It seems that you are running a drozer pre-release. Brilliant!\n\nPlease send any bugs, feature requests or other feedback to our GitHub project:\nhttps://github.com/WithSecureLabs/drozer\n\nYour contributions help us to make drozer awesome.\n")
+                    print("It seems that you are running a drozer pre-release. Brilliant!\n\nPlease send any bugs, feature requests or other feedback to our GitHub project:\nhttps://github.com/ReversecLabs/drozer\n\nYour contributions help us to make drozer awesome.\n")
                 elif meta.version < latest:
-                    print("It seems that you are running an old version of drozer. drozer v%s was\nreleased on %s. We suggest that you update your copy to make sure that\nyou have the latest features and fixes.\n\nTo download the latest drozer visit:\nhttps://github.com/WithSecureLabs/drozer/releases\n" % (latest, date))
+                    print("It seems that you are running an old version of drozer. drozer v%s was\nreleased on %s. We suggest that you update your copy to make sure that\nyou have the latest features and fixes.\n\nTo download the latest drozer visit:\nhttps://github.com/ReversecLabs/drozer/releases\n" % (latest, date))
         except Exception as e:
             #silence this exception unless in debug mode
             self.handleException(e, shutup=True)
@@ -295,7 +295,7 @@ class Cmd(cmd.Cmd):
             latestAgent, dateAgent = meta.latest_agent_version()
             if latestAgent is not None:
                 if agentVersion < latestAgent:
-                    print("It seems that you are running an old version of drozer-agent. drozer-agent v%s was\nreleased on %s. We suggest that you update your copy to make sure that\nyou have the latest features and fixes.\n\nTo download the latest drozer-agent visit:\nhttps://github.com/WithSecureLabs/drozer-agent/releases\n" % (latestAgent, dateAgent))
+                    print("It seems that you are running an old version of drozer-agent. drozer-agent v%s was\nreleased on %s. We suggest that you update your copy to make sure that\nyou have the latest features and fixes.\n\nTo download the latest drozer-agent visit:\nhttps://github.com/ReversecLabs/drozer-agent/releases\n" % (latestAgent, dateAgent))
         except Exception as e:
             self.handleException(e, shutup=True)
             pass
@@ -344,7 +344,7 @@ class Cmd(cmd.Cmd):
 
     def __build_tee(self, console, destination):
         """
-        Create a WithSecure.system.Tee object to be used by output redirection.
+        Create a reversec.system.Tee object to be used by output redirection.
         """
 
         if destination[0] == ">":

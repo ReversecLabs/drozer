@@ -1,1 +1,0 @@
-from WithSecure.common.twisted.stream_receiver import StreamReceiver

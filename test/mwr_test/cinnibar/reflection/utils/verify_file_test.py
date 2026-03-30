@@ -46,7 +46,7 @@ class VerifyFileTestCase(unittest.TestCase):
         """
         
         def constructor(*args, **kwargs):
-            if args[0] == "com.WithSecure.droidhg.util.Verify":
+            if args[0] == "com.reversec.droidhg.util.Verify":
                 return MockRemoteVerify()
             if args[0] == "java.io.FileInputStream":
                 return MockFileInputStream(kwargs)
@@ -59,7 +59,7 @@ class VerifyFileTestCase(unittest.TestCase):
         """
 
         def constructor(*args, **kwargs):
-            if args[0] == "com.WithSecure.droidhg.util.Verify":
+            if args[0] == "com.reversec.droidhg.util.Verify":
                 raise ReflectionException
             if args[0] == "java.io.FileInputStream":
                 return MockFileInputStream(kwargs)

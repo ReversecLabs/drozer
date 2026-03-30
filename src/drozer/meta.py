@@ -32,7 +32,7 @@ version = Version(drozer.__version__)
 
 def latest_version():
     try:
-        response = urlopen(Request("https://api.github.com/repos/WithSecureLabs/drozer/releases/latest", None, {"user-agent": "drozer: %s" % str(version)}), None, 1)
+        response = urlopen(Request("https://api.github.com/repos/ReversecLabs/drozer/releases/latest", None, {"user-agent": "drozer: %s" % str(version)}), None, 1)
         latestTag = json.load(response)
         latestVersion = Version(latestTag["tag_name"]), latestTag["created_at"][:10]
         return latestVersion
@@ -43,7 +43,7 @@ def latest_version():
         
 def latest_agent_version():
     try:
-        response = urlopen(Request("https://api.github.com/repos/WithSecureLabs/drozer-agent/releases/latest", None, {"user-agent": "drozer: %s" % str(version)}), None, 1)
+        response = urlopen(Request("https://api.github.com/repos/ReversecLabs/drozer-agent/releases/latest", None, {"user-agent": "drozer: %s" % str(version)}), None, 1)
         latestTag = json.load(response)
         latestAgentVersion = Version(latestTag["tag_name"]), latestTag["created_at"][:10]
         return latestAgentVersion

@@ -5,7 +5,7 @@ import os
 from pysolar.reflection.exceptions import ReflectionException
 from pysolar.reflection.types.reflected_primitive import ReflectedPrimitive
 from pysolar.reflection.utils import ClassBuilder
-from WithSecure.common import fs
+from reversec.common import fs
 
 import codecs
 
@@ -105,7 +105,7 @@ class ClassLoader(object):
         
         remote_hash = ""        
         try:
-            remote_verify = self.construct("com.WithSecure.dz.util.Verify")
+            remote_verify = self.construct("com.reversec.dz.util.Verify")
             remote_hash = remote_verify.md5sum(remote)
         except ReflectionException:
             return True

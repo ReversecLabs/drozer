@@ -13,7 +13,7 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-rem Edited by MWR InfoSecurity for use within drozer, for more infomation, please see LICENSE
+rem Edited by Reversec for use within drozer, for more information, please see LICENSE
 
 rem This script is called by the other batch files to find a suitable Java.exe
 rem to use. The script changes the "java_exe" env variable. The variable

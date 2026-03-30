@@ -1,4 +1,4 @@
-from WithSecure.common import cli, path_completion
+from reversec.common import cli, path_completion
 
 from drozer import util
 from drozer.server import dz, uploader

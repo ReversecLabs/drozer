@@ -25,7 +25,7 @@ class Remote(object):
         """
 
         if not Configuration.has_section('remotes'):
-            cls.create("https://raw.githubusercontent.com/WithSecureLabs/drozer-modules/repository/")
+            cls.create("https://raw.githubusercontent.com/ReversecLabs/drozer-modules/repository/")
 
         return Configuration.get_all_values('remotes')
 

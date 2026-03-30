@@ -117,7 +117,7 @@ class ModuleTestCase(unittest.TestCase):
 
         ModuleTestCase.MockModule(MockSession(reflector)).getContext()
 
-        assert reflector.resolved == "com.WithSecure.droidhg.Agent"
+        assert reflector.resolved == "com.reversec.droidhg.Agent"
         assert reflector.invoked[1] == "getContext"
 
     def testItShouldResolveAKlass(self):

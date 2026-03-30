@@ -3,8 +3,8 @@ import textwrap
 
 from pysolar.reflection.types import ReflectedType
 
-from WithSecure.common import argparse_completer, console
-from WithSecure.common.text import wrap
+from reversec.common import argparse_completer, console
+from reversec.common.text import wrap
 
 class Module(object):
     """
@@ -119,7 +119,7 @@ class Module(object):
         Gets the context of the running Agent application.
         """
 
-        return self.klass('com.WithSecure.dz.Agent').getContext()
+        return self.klass('com.reversec.dz.Agent').getContext()
     
     def has_context(self):
         """

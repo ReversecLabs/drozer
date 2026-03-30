@@ -2,7 +2,7 @@ import argparse
 import sys
 import textwrap
 
-from WithSecure.common import console
+from reversec.common import console
 
 class Base(object):
     """

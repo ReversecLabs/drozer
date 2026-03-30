@@ -1,7 +1,7 @@
 import os
 import platform
 
-from WithSecure.common import command_wrapper
+from reversec.common import command_wrapper
 
 from drozer.configuration import Configuration
 

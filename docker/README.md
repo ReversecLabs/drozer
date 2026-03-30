@@ -12,7 +12,7 @@ A pre-built image can be pulled by running:
 
 ```docker pull drozerdocker/drozer```
 
-Alternatively, to build this container yourself, use the `docker build` command, pointing it towards WithSecure's GitHub repository:
+Alternatively, to build this container yourself, use the `docker build` command, pointing it towards Reversec's GitHub repository:
 
 ```docker build -t drozerdocker/drozer https://github.com/ReversecLabs/drozer.git#develop:docker```
 

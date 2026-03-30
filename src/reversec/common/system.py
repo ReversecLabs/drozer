@@ -1,7 +1,7 @@
 import os
 import platform
 
-from WithSecure.common.stream import DecolouredStream
+from reversec.common.stream import DecolouredStream
 
 
 def which(executable):
