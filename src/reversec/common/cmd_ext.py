@@ -56,6 +56,15 @@ if has_prompt_toolkit:
                 comp = cs.current_completion or cs.completions[0]
                 buf.apply_completion(comp)
 
+        @kb.add('c-c', eager=True)
+        def _ctrl_c_handler(event):
+            if event.current_buffer.text:
+                # Buffer has content: clear the line and stay in the session
+                event.current_buffer.reset()
+            else:
+                # Empty buffer: exit (mirrors bash / most shell behaviour)
+                event.app.exit(exception=KeyboardInterrupt())
+
         return kb
 
     _DROZER_KEY_BINDINGS = _make_drozer_key_bindings()
@@ -210,10 +219,16 @@ class Cmd(cmd.Cmd):
                             else:
                                 line = input(self.prompt)
                         except EOFError:
-                            line = 'EOF'
-                        except KeyboardInterrupt:
+                            # Ctrl+D: exit the session cleanly
                             self.stdout.write('\n')
-                            continue
+                            stop = True
+                            break
+                        except KeyboardInterrupt:
+                            # Ctrl+C on empty buffer (non-empty is handled by
+                            # the key binding, which clears the line in-place)
+                            self.stdout.write('\n')
+                            stop = True
+                            break
                     else:
                         self.stdout.write(self.prompt)
                         self.stdout.flush()
