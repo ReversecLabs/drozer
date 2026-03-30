@@ -284,8 +284,9 @@ class Cmd(cmd.Cmd):
             raw_doc = (getattr(self, 'do_' + command).__doc__ or "").strip()
             usage = next((l.strip() for l in raw_doc.splitlines() if l.strip()), "")
             if usage:
-                safe = usage.replace("<", "&lt;").replace(">", "&gt;")
-                return HTML(f"<b>{command}</b> — {safe}")
+                safe_command = command.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                safe_usage = usage.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                return HTML(f"<b>{safe_command}</b> — {safe_usage}")
         except AttributeError:
             pass
         return ""
