@@ -77,7 +77,7 @@ if has_prompt_toolkit:
         if history_file:
             try:
                 return FileHistory(history_file)
-            except OSError:
+            except Exception:
                 pass
         return InMemoryHistory()
 
