@@ -40,7 +40,7 @@ class Session(cmd.Cmd):
         self.__onecmd = arguments.onecmd
         self.active = True
         self.aliases = { "l": "list", "ls": "list", "ll": "list" }
-        self.intro = "drozer Console from ReversecLabs (v%s)" % meta.version
+        self.intro = "drozer Console (v%s)" % meta.version
         self.history_file = os.path.sep.join([os.path.expanduser("~"), ".drozer_history"])
         self.modules = collection.ModuleCollection(loader.ModuleLoader())
         self.prompt = "dz> "
@@ -195,7 +195,7 @@ class Session(cmd.Cmd):
 
         self.stdout.write("Core Contributors:\n")
         for contributor in [
-            'Reversec Labs (@reversec)',
+            'Reversec Labs (https://labs.reversec.com/)',
             'Ken Gannon (@Yogehi)', 
             'William Ben Embarek (@willbenem)', 
             'Miłosz Gaczkowski (@cyberMilosz)', 
