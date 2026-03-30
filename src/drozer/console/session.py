@@ -357,15 +357,21 @@ class Session(cmd.Cmd):
         else:
             cmd.Cmd.do_help(self, args)
 
-    def complete_help(self, *args):
+    def complete_help(self, text, line, begidx, endidx):
         """
         Provides readline auto-completion for the `help` command, offering
         commands, modules and topics.
         """
 
-        commands = set(self.completenames(args[0]))
-        modules = set(self.completemodules(args[0]))
-        topics = set(a[5:] for a in self.get_names() if a.startswith('help_' + args[0]))
+        # help takes exactly one argument; once an argument has been fully
+        # typed and the user presses space, stop offering completions.
+        after_cmd = line[len("help"):].lstrip()
+        if after_cmd and not text:
+            return []
+
+        commands = set(self.completenames(text))
+        modules = set(self.completemodules(text))
+        topics = set(a[5:] for a in self.get_names() if a.startswith('help_' + text))
 
         return list(commands | modules | topics)
 
