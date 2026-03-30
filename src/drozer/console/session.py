@@ -77,22 +77,48 @@ class Session(cmd.Cmd):
 
     def completemodules(self, text):
         """
-        Provides readline auto-completion for drozer module names.
+        Provides tab-completion for drozer module names.
+
+        Returns one namespace level at a time so the user can drill down
+        step by step (e.g. "" -> ["app.", "tools."] -> ["app.package."] ->
+        ["app.package.info"]). Namespace suggestions end with a trailing dot
+        to signal to the completer that there are more levels below; leaf
+        module names have no trailing dot.
         """
 
-        modules = self.modules.all(permissions=self.permissions(), prefix=self.__base)
-        
-        if self.__base == "":
-            modules = list(filter(lambda m: m.startswith(text), modules))
-        elif text.startswith("."):
-            modules = list(filter(lambda m: m.startswith(text[1:]), modules))
-        else:
-            modules = map(lambda m: m[len(self.__base):], list(filter(lambda m: m.startswith(self.__base + text), modules)))
-        
-        #if len(modules) == 1 and text == modules[0]:
-        #    return []
+        all_modules = self.modules.all(permissions=self.permissions(), prefix=self.__base)
 
-        return modules
+        if self.__base == "":
+            matching = list(filter(lambda m: m.startswith(text), all_modules))
+        elif text.startswith("."):
+            matching = list(filter(lambda m: m.startswith(text[1:]), all_modules))
+        else:
+            matching = list(map(
+                lambda m: m[len(self.__base):],
+                filter(lambda m: m.startswith(self.__base + text), all_modules)
+            ))
+
+        # How many namespace levels has the user already typed?
+        # "app.package" has 1 dot → committed to depth 1 → show depth-2 suggestions.
+        depth = text.count('.')
+        target_depth = depth + 1
+
+        seen = set()
+        result = []
+        for m in matching:
+            parts = m.split('.')
+            if len(parts) > target_depth:
+                # More levels exist: suggest only up to the next level,
+                # with a trailing dot so the completer knows it's a namespace.
+                suggestion = '.'.join(parts[:target_depth]) + '.'
+            else:
+                # This is a leaf module at or within the target depth.
+                suggestion = m
+            if suggestion not in seen:
+                seen.add(suggestion)
+                result.append(suggestion)
+
+        return result
 
     def completenamespaces(self, text):
         """

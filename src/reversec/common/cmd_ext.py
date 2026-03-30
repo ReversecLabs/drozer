@@ -3,19 +3,18 @@ import os
 from platform import platform
 from drozer import meta
 
-# readline works on linux/mac
-# pyreadline3 works on windows
-# or alternatively if you have none of those that's also fine, you just won't get tab-complete
-has_readline = False
+has_prompt_toolkit = False
 try:
-    import readline
-    has_readline = True
-except ModuleNotFoundError:
-    try:
-        from pyreadline3 import Readline as readline
-        has_readline = True
-    except:
-        pass
+    from prompt_toolkit import PromptSession
+    from prompt_toolkit.completion import Completer, Completion
+    from prompt_toolkit.history import FileHistory, InMemoryHistory
+    from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+    from prompt_toolkit.formatted_text import HTML
+    from prompt_toolkit.key_binding import KeyBindings
+    from prompt_toolkit.filters import has_completions as _has_completions
+    has_prompt_toolkit = True
+except ImportError:
+    pass
 
 import shlex
 import sys
@@ -23,6 +22,122 @@ import textwrap
 
 from reversec.common import system
 from reversec.common.text import wrap
+
+
+if has_prompt_toolkit:
+    def _make_drozer_key_bindings():
+        """
+        Replaces prompt_toolkit's default Tab cycling behaviour with
+        "apply and drill down":
+
+        - When the completion menu is open, Tab commits the currently
+          highlighted completion (or the first one if nothing is highlighted)
+          and immediately applies it to the buffer.
+        - For namespace completions (ending in '.'), complete_while_typing
+          then refreshes the dropdown to the next level automatically.
+        - For leaf completions the module name is filled in; Enter submits.
+        - Arrow keys still navigate the menu without committing anything,
+          so the user can pick a specific item before pressing Tab.
+        - When the menu is not open, Tab opens it (default behaviour).
+
+        Why not intercept Enter instead?  complete_while_typing re-runs the
+        completer the instant Tab would apply a namespace, which creates a
+        brand-new complete_state with nothing selected — so any Enter filter
+        based on completion_is_selected is always False by the time the user
+        presses Enter.  Making Tab do the work sidesteps this entirely.
+        """
+        kb = KeyBindings()
+
+        @kb.add('tab', filter=_has_completions, eager=True)
+        def _tab_apply_completion(event):
+            buf = event.current_buffer
+            cs = buf.complete_state
+            if cs and cs.completions:
+                comp = cs.current_completion or cs.completions[0]
+                buf.apply_completion(comp)
+
+        return kb
+
+    _DROZER_KEY_BINDINGS = _make_drozer_key_bindings()
+
+    class DrozerCompleter(Completer):
+        """
+        Bridges prompt_toolkit's Completer interface to the existing cmd-style
+        complete_<command> / completenames dispatch chain.
+
+        All the underlying completion methods (complete_run, complete_cd,
+        completenames, ArgumentParserCompleter etc.) use the clean
+        (text, line, begidx, endidx) signature with no readline dependency,
+        so they plug straight in here.
+
+        WORD=True is critical: it splits only on whitespace, so dotted module
+        names like "app.package.info" are treated as a single token and passed
+        intact to the underlying completion functions.
+        """
+
+        def __init__(self, cmd_instance):
+            self._cmd = cmd_instance
+
+        def get_completions(self, document, complete_event):
+            text_before = document.text_before_cursor
+            line = text_before.lstrip()
+            stripped = len(text_before) - len(line)
+            # WORD=True: only split on whitespace, so "app.package" stays whole
+            text = document.get_word_before_cursor(WORD=True)
+            begidx = len(text_before) - len(text) - stripped
+            endidx = len(text_before) - stripped
+
+            try:
+                if begidx > 0:
+                    # Output redirection: delegate to completefilename after ">"
+                    if ">" in line and begidx > line.index(">"):
+                        matches = self._cmd.completefilename(text, line, begidx, endidx) or []
+                    else:
+                        command = self._cmd.parseline(line)[0]
+                        if not command:
+                            compfunc = self._cmd.completedefault
+                        else:
+                            compfunc = getattr(self._cmd, 'complete_' + command,
+                                               self._cmd.completedefault)
+                        matches = compfunc(text, line, begidx, endidx) or []
+                else:
+                    matches = self._cmd.completenames(text, line, begidx, endidx) or []
+            except Exception:
+                return
+
+            for m in matches:
+                if m.endswith('.'):
+                    # Namespace suggestion from completemodules: trailing dot signals
+                    # "there are more levels below". Display without dot so the
+                    # dropdown looks clean; insert WITH dot so the next completion
+                    # call immediately shows the next level.
+                    yield Completion(m, start_position=-len(text), display=m.rstrip('.'))
+                elif m.endswith(os.path.sep):
+                    # Filesystem directory
+                    yield Completion(m, start_position=-len(text))
+                else:
+                    # Leaf module, command name, or flag: add trailing space
+                    yield Completion(m.rstrip() + ' ', start_position=-len(text))
+
+    class _ModuleCompleter(Completer):
+        """
+        Wraps a readline-style (text, state) -> str|None completer callable
+        for use as a prompt_toolkit Completer. Used for module-provided
+        completers pushed via push_completer().
+        """
+
+        def __init__(self, readline_fn):
+            self._fn = readline_fn
+
+        def get_completions(self, document, complete_event):
+            text = document.get_word_before_cursor()
+            state = 0
+            while True:
+                result = self._fn(text, state)
+                if result is None:
+                    break
+                yield Completion(result, start_position=-len(text))
+                state += 1
 
 
 class Cmd(cmd.Cmd):
@@ -55,6 +170,12 @@ class Cmd(cmd.Cmd):
         self.stderr = sys.stderr
         self.variables = {}
 
+        # prompt_toolkit state
+        self._pt_session = None
+        self._pt_completer = None
+        self._pt_completer_stack = []
+        self._pt_history_stack = []
+
     def cmdloop(self, intro=None):
         """
         Repeatedly issue a prompt, accept input, parse an initial prefix
@@ -62,8 +183,14 @@ class Cmd(cmd.Cmd):
         the remainder of the line as argument.
         """
         self.preloop()
-        if self.use_rawinput and self.completekey:
-            self.push_completer(self.complete, self.history_file)
+
+        if has_prompt_toolkit:
+            history = FileHistory(self.history_file) if self.history_file else InMemoryHistory()
+            self._pt_completer = DrozerCompleter(self)
+            self._pt_session = PromptSession(history=history, key_bindings=_DROZER_KEY_BINDINGS)
+            self._pt_history_stack = [self.history_file]
+            self._pt_completer_stack = []
+
         try:
             stop = None
             while not stop:
@@ -72,9 +199,21 @@ class Cmd(cmd.Cmd):
                 else:
                     if self.use_rawinput:
                         try:
-                            line = input(self.prompt)
+                            if has_prompt_toolkit and self._pt_session:
+                                line = self._pt_session.prompt(
+                                    self.prompt,
+                                    completer=self._pt_completer,
+                                    complete_while_typing=True,
+                                    auto_suggest=AutoSuggestFromHistory(),
+                                    bottom_toolbar=self._pt_bottom_toolbar,
+                                )
+                            else:
+                                line = input(self.prompt)
                         except EOFError:
                             line = 'EOF'
+                        except KeyboardInterrupt:
+                            self.stdout.write('\n')
+                            continue
                     else:
                         self.stdout.write(self.prompt)
                         self.stdout.flush()
@@ -89,7 +228,7 @@ class Cmd(cmd.Cmd):
                     stop = self.onecmd(line)
                     stop = self.postcmd(stop, line)
                 except ValueError as e:
-                    if e.message == "No closing quotation":
+                    if str(e) == "No closing quotation":
                         self.stderr.write(
                             "Failed to parse your command, because there were unmatched quotation marks.\n")
                         self.stderr.write(
@@ -101,58 +240,29 @@ class Cmd(cmd.Cmd):
         except Exception as e:
             print("Loop exception")
             self.handleException(e)
-            pass
 
-        finally:
-            if self.use_rawinput and self.completekey:
-                self.pop_completer()
-
-    def complete(self, text, state):
+    def _pt_bottom_toolbar(self):
         """
-        Return the next possible completion for 'text'.
-
-        If a command has not been entered, then complete against command list.
-        Otherwise, try to call complete_<command> to get list of completions.
+        Returns contextual help for display in the prompt_toolkit bottom toolbar.
+        Shows the usage line of the command currently being typed.
         """
-
-        if state == 0:
-            if has_readline:
-                origline = readline.get_line_buffer()
-                line = origline.lstrip()
-                stripped = len(origline) - len(line)
-                begidx = readline.get_begidx() - stripped
-                endidx = readline.get_endidx() - stripped
-
-                if begidx > 0:
-                    if ">" in line and begidx > line.index(">"):
-                        self.completion_matches = self.completefilename(text, line, begidx, endidx)
-                        return self.completion_matches[0]
-
-                    command = self.parseline(line)[0]
-                    if command == '':
-                        compfunc = self.completedefault
-                    else:
-                        try:
-                            compfunc = getattr(self, 'complete_' + command)
-                        except AttributeError:
-                            compfunc = self.completedefault
-                else:
-                    compfunc = self.completenames
-
-                matches = compfunc(text, line, begidx, endidx)
-                if len(matches) == 1 and matches[0].endswith(os.path.sep):
-                    self.completion_matches = matches
-                else:
-                    self.completion_matches = list(map(lambda s: s + " ", matches))
-
         try:
-            return self.completion_matches[state]
-        except IndexError:
-            return None
-        except TypeError:
-            return None
+            text = self._pt_session.app.current_buffer.text.lstrip()
+        except AttributeError:
+            return ""
+        command = self.parseline(text)[0] if text else ""
+        if not command:
+            return ""
+        try:
+            raw_doc = (getattr(self, 'do_' + command).__doc__ or "").strip()
+            usage = next((l.strip() for l in raw_doc.splitlines() if l.strip()), "")
+            if usage:
+                safe = usage.replace("<", "&lt;").replace(">", "&gt;")
+                return HTML(f"<b>{command}</b> — {safe}")
+        except AttributeError:
+            pass
+        return ""
 
-    #TODO implement
     def completefilename(self, text, line, begidx, endidx):
         """
         Placeholder for a filename autocompletion method, that is invoked by
@@ -177,11 +287,11 @@ class Cmd(cmd.Cmd):
     def do_echo(self, arguments):
         """
         usage: echo LINE
-        
+
         Prints out how a line will be processed at runtime, performing all variable substitutions.
-        
+
         Example:
-        
+
             dz> set P=com.example.app
             dz> echo run app.package.info -a $P
             run app.package.info com.example.app
@@ -202,11 +312,11 @@ class Cmd(cmd.Cmd):
     def do_set(self, arguments):
         """
         usage: set NAME=VALUE [NAME=VALUE ...]
-        
+
         Sets one-or-more variables, that can be used to set values in subsequent commands.
-        
+
         Example:
-        
+
             dz> set P=com.example.app
             dz> run app.package.info -a $P
         """
@@ -219,7 +329,7 @@ class Cmd(cmd.Cmd):
     def do_unset(self, arguments):
         """
         usage: unset NAME [NAME ...]
-        
+
         Removes one-or-more values previously stored in variables.
         """
 
@@ -306,41 +416,45 @@ class Cmd(cmd.Cmd):
         self.checkVer()
 
     def push_completer(self, completer, history_file=None):
-        if has_readline:
-            self.__completer_stack.append(readline.get_completer())
-            readline.set_completer(completer)
-            readline.set_completer_delims(readline.get_completer_delims().replace("/", ""))
+        """
+        Push a new completer (and optionally switch history file) onto the stack.
+        Used by modules that need to temporarily override tab-completion.
+        """
+        if not has_prompt_toolkit or self._pt_session is None:
+            return
 
-            if len(self.__history_stack) > 0 and self.__history_stack[-1]:
-                readline.write_history_file(self.__history_stack[-1])
+        self._pt_completer_stack.append(self._pt_completer)
+        self._pt_history_stack.append(history_file)
 
-            self.__history_stack.append(history_file)
-            readline.clear_history()
-            if history_file is not None and os.path.exists(history_file):
-                try:
-                    # In macOS, this line causes a `[Errno 1] Operation not permitted` if there is a `~/.drozer_history`
-                    readline.read_history_file(history_file)
-                except IOError as e:
-                    if "darwin" in platform().lower() and str(e).strip() == "[Errno 1] Operation not permitted":
-                        print
-                        "Could not access the history file..."
-                    else:
-                        raise e
+        if completer is self.complete:
+            self._pt_completer = DrozerCompleter(self)
+        else:
+            self._pt_completer = _ModuleCompleter(completer)
 
-            readline.parse_and_bind(self.completekey + ": complete")
+        new_history = FileHistory(history_file) if history_file else InMemoryHistory()
+        self._pt_session = PromptSession(history=new_history, key_bindings=_DROZER_KEY_BINDINGS)
 
     def pop_completer(self):
-        if has_readline:
-            if self.__history_stack[-1] != None:
-                readline.write_history_file(self.__history_stack.pop())
-            else:
-                self.__history_stack.pop()
+        """
+        Restore the previous completer and history from the stack.
+        """
+        if not has_prompt_toolkit or not self._pt_completer_stack:
+            return
 
-            readline.clear_history()
-            if len(self.__history_stack) > 0 and self.__history_stack[-1]:
-                readline.read_history_file(self.__history_stack[-1])
+        self._pt_completer = self._pt_completer_stack.pop()
+        self._pt_history_stack.pop()
 
-            readline.set_completer(self.__completer_stack.pop())
+        prev_history_file = self._pt_history_stack[-1] if self._pt_history_stack else None
+        history = FileHistory(prev_history_file) if prev_history_file else InMemoryHistory()
+        self._pt_session = PromptSession(history=history, key_bindings=_DROZER_KEY_BINDINGS)
+
+    def complete(self, text, state):
+        """
+        Stub kept for API compatibility with push_completer() callers that
+        pass `self.complete` as the completer function. The actual completion
+        work is done by DrozerCompleter when prompt_toolkit is active.
+        """
+        return None
 
     def __build_tee(self, console, destination):
         """
