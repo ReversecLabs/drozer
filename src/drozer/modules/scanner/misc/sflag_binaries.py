@@ -26,10 +26,10 @@ Discovered suid/sgid files in /system:
 
     def execute(self, arguments):
         if self.isFindInstalled():
-            command = "find %s -type f \( -perm -04000 -o -perm -02000 \) \-exec ls {} \;" % arguments.target
+            command = "find %s -type f \\( -perm -04000 -o -perm -02000 \\) \\-exec ls {} \\;" % arguments.target
         else:
             if (self.isToyBoxInstalled() == True):
-                command = self.toyboxPath() + " find %s -type f \( -perm -04000 -o -perm -02000 \) \-exec ls {} \;" % arguments.target
+                command = self.toyboxPath() + " find %s -type f \\( -perm -04000 -o -perm -02000 \\) \\-exec ls {} \\;" % arguments.target
             else:
                 self.stderr.write("Since the Agent does not have a find binary, this command requires ToyBox to complete. Run tools.setup.toybox and then retry.\n")
                 return
