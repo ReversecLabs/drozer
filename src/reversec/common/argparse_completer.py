@@ -31,7 +31,7 @@ class ArgumentParserCompleter(object):
 
         pos_actions = self.__get_positional_actions()
         offset = word - offs
-        if pos_actions is not None and (offset < len(pos_actions)):
+        if pos_actions is not None and (offset < len(pos_actions)) and not text.startswith('-'):
             suggestions.extend(filter(lambda s: s.startswith(text),
                                       self.__get_suggestions_for(self.__get_positional_action(offset), text, line)))
         else:
@@ -105,7 +105,7 @@ class ArgumentParserCompleter(object):
         of tokens).
         """
 
-        flags = self.__get_flags(words, word)
+        flags = list(self.__get_flags(words, word))
 
         if len(flags) > 0:
             flag_word = flags[-1]
