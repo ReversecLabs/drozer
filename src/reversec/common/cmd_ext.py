@@ -1,6 +1,5 @@
 import cmd
 import os
-from platform import platform
 from drozer import meta
 
 has_prompt_toolkit = False
