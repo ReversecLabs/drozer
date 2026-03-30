@@ -29,6 +29,8 @@ class Session(cmd.Cmd):
     Type `help COMMAND` for more information on a particular command, or `help MODULE` for a particular module.
     """
 
+    debug_mode = False
+
     def __init__(self, server, session_id, arguments):
         cmd.Cmd.__init__(self)
         self.__base = ""
@@ -77,22 +79,120 @@ class Session(cmd.Cmd):
 
     def completemodules(self, text):
         """
-        Provides readline auto-completion for drozer module names.
+        Provides tab-completion for drozer module names.
+
+        Returns one namespace level at a time so the user can drill down
+        step by step (e.g. "" -> ["app.", "tools."] -> ["app.package."] ->
+        ["app.package.info"]). Namespace suggestions end with a trailing dot
+        to signal to the completer that there are more levels below; leaf
+        module names have no trailing dot.
         """
 
-        modules = self.modules.all(permissions=self.permissions(), prefix=self.__base)
-        
-        if self.__base == "":
-            modules = list(filter(lambda m: m.startswith(text), modules))
-        elif text.startswith("."):
-            modules = list(filter(lambda m: m.startswith(text[1:]), modules))
-        else:
-            modules = map(lambda m: m[len(self.__base):], list(filter(lambda m: m.startswith(self.__base + text), modules)))
-        
-        #if len(modules) == 1 and text == modules[0]:
-        #    return []
+        all_modules = self.modules.all(permissions=self.permissions(), prefix=self.__base)
 
-        return modules
+        if self.__base == "":
+            matching = list(filter(lambda m: m.startswith(text), all_modules))
+        elif text.startswith("."):
+            matching = list(filter(lambda m: m.startswith(text[1:]), all_modules))
+        else:
+            matching = list(map(
+                lambda m: m[len(self.__base):],
+                filter(lambda m: m.startswith(self.__base + text), all_modules)
+            ))
+
+        # How many namespace levels has the user already typed?
+        # "app.package" has 1 dot → committed to depth 1 → show depth-2 suggestions.
+        depth = text.count('.')
+        target_depth = depth + 1
+
+        seen = set()
+        result = []
+        for m in matching:
+            parts = m.split('.')
+            if len(parts) > target_depth:
+                # More levels exist: suggest only up to the next level,
+                # with a trailing dot so the completer knows it's a namespace.
+                suggestion = '.'.join(parts[:target_depth]) + '.'
+            else:
+                # This is a leaf module at or within the target depth.
+                suggestion = m
+            if suggestion not in seen:
+                seen.add(suggestion)
+                result.append(suggestion)
+
+        return result
+
+    def _pt_bottom_toolbar(self):
+        """
+        Context-sensitive bottom toolbar for prompt_toolkit.
+
+        When 'run <module>' is typed and the module resolves, shows the
+        module's name, a one-line description, and its argparse usage line
+        (so the user can see all available flags at a glance).
+
+        Falls back to the generic do_<command> docstring for every other command.
+        """
+        try:
+            from prompt_toolkit.formatted_text import HTML
+        except ImportError:
+            return ""
+
+        def xe(s):
+            """Escape a plain string for safe embedding in prompt_toolkit HTML."""
+            return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+        try:
+            text = self._pt_session.app.current_buffer.text.lstrip()
+        except AttributeError:
+            return ""
+
+        command = self.parseline(text)[0] if text else ""
+        if not command:
+            return ""
+
+        if command == "run":
+            m = re.match(r"run\s+(\S+)", text)
+            if m:
+                module_name = m.group(1).rstrip('.')
+                try:
+                    mod = self.__module(module_name)
+                    mod_name = mod.__class__.name
+                    mod_desc = textwrap.dedent(mod.__class__.description).strip()
+                    first_desc = mod_desc.splitlines()[0] if mod_desc else ""
+
+                    try:
+                        parser = mod.get_parser()
+                        raw_usage = parser.format_usage()
+                        # Python 3.13+ argparse emits ANSI colour codes when
+                        # stdout is a tty; ESC (U+001B) is forbidden in XML 1.0
+                        raw_usage = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', raw_usage)
+                        # Strip everything before the first '[' — that's
+                        # "usage: prog_name " regardless of whether prog
+                        # contains spaces (e.g. "python.exe C:\...\drozer").
+                        # __prepare_parser always adds -h so '[' is guaranteed.
+                        bracket = raw_usage.find('[')
+                        clean_usage = raw_usage[bracket:] if bracket >= 0 else ''
+                        # Collapse line-wrapped indentation into a single line
+                        clean_usage = ' '.join(clean_usage.split())
+                        usage_part = f"  |  <i>{xe(clean_usage)}</i>" if clean_usage else ""
+                    except Exception:
+                        usage_part = ""
+
+                    desc_part = f" \u2014 {xe(first_desc)}" if first_desc else ""
+                    return HTML(f"<b>{xe(mod_name)}</b>{desc_part}{usage_part}")
+                except Exception as _e:
+                    if self.debug_mode:
+                        return f"toolbar-err {type(_e).__name__}: {str(_e)[:80]}"
+
+        # Generic fallback: first line of do_<command>'s docstring
+        try:
+            raw_doc = (getattr(self, 'do_' + command).__doc__ or "").strip()
+            usage_line = next((l.strip() for l in raw_doc.splitlines() if l.strip()), "")
+            if usage_line:
+                return HTML(f"<b>{xe(command)}</b> \u2014 {xe(usage_line)}")
+        except AttributeError:
+            pass
+        return ""
 
     def completenamespaces(self, text):
         """
@@ -257,15 +357,21 @@ class Session(cmd.Cmd):
         else:
             cmd.Cmd.do_help(self, args)
 
-    def complete_help(self, *args):
+    def complete_help(self, text, line, begidx, endidx):
         """
         Provides readline auto-completion for the `help` command, offering
         commands, modules and topics.
         """
 
-        commands = set(self.completenames(args[0]))
-        modules = set(self.completemodules(args[0]))
-        topics = set(a[5:] for a in self.get_names() if a.startswith('help_' + args[0]))
+        # help takes exactly one argument; once an argument has been fully
+        # typed and the user presses space, stop offering completions.
+        after_cmd = line[len("help"):].lstrip()
+        if after_cmd and not text:
+            return []
+
+        commands = set(self.completenames(text))
+        modules = set(self.completemodules(text))
+        topics = set(a[5:] for a in self.get_names() if a.startswith('help_' + text))
 
         return list(commands | modules | topics)
 
@@ -419,7 +525,7 @@ class Session(cmd.Cmd):
         method defined on the specified module.
         """
 
-        _line = re.match("(run\s+)([^\s]*)(\s*)", line)
+        _line = re.match(r"(run\s+)([^\s]*)(\s*)", line)
 
         # figure out where the module name starts in the string
         cmdidx = len(_line.group(1))
@@ -832,6 +938,8 @@ class DebugSession(Session):
     DebugSession is a subclass of Session, which rewrites the default error
     handlers to print stacktrace information.
     """
+
+    debug_mode = True
 
     def __init__(self, server, session_id, arguments):
         Session.__init__(self, server, session_id, arguments)

@@ -316,7 +316,7 @@ class LaunchIntent(Module, common.PackageManager):
                 flag = flags & (0x0000000F << i*4)
                 if android.Intent.flags.get(key) == flag:
                     out = out + "%s, "%key
-        if out is not "":
+        if out != "":
             return "[%s]"%out[:-2]
         else:
             return "null"
@@ -412,7 +412,7 @@ class Manifest(Module, common.Assets):
                 
                 self.stdout.write("%s%s<[color green]%s[/color]" % ("  " * level, match.group(1), contents[0]))
                 if len(contents) > 1:
-                    self.stdout.write(("\n%s%s" % ("  " * level, " " * (len(contents[0]) + 1))).join(map(lambda m: " [color purple]%s[/color]=[color red]\"%s\"[/color]" % m, re.compile("([^=]+)=\"([^\"]+)\"\s*").findall(contents[1]))))
+                    self.stdout.write(("\n%s%s" % ("  " * level, " " * (len(contents[0]) + 1))).join(map(lambda m: " [color purple]%s[/color]=[color red]\"%s\"[/color]" % m, re.compile(r"([^=]+)=\"([^\"]+)\"\s*").findall(contents[1]))))
                         
                 self.stdout.write(">\n")
             else:

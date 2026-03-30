@@ -200,11 +200,17 @@ class Module(object):
 
         raise Exception(message)
     
+    def get_parser(self):
+        """
+        Returns the ArgumentParser for this module (used for toolbar display and completion).
+        """
+        return self.__prepare_parser()
+
     def __prepare_parser(self):
         """
         Build an argparse.ArgumentParser for this Module.
         """
-        
+
         parser = argparse.ArgumentParser(add_help=False, formatter_class=argparse.RawTextHelpFormatter)
 
         parser.error = self.__parse_error

@@ -5,3 +5,4 @@ service-identity
 distro
 pyyaml
 requests
+prompt_toolkit>=3.0.0
