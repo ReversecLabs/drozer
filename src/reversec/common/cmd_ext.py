@@ -68,6 +68,19 @@ if has_prompt_toolkit:
 
     _DROZER_KEY_BINDINGS = _make_drozer_key_bindings()
 
+    def _create_history(history_file):
+        """
+        Return a FileHistory for *history_file*, falling back to
+        InMemoryHistory when the file cannot be opened or read (e.g. permission
+        errors or an unreadable macOS sandbox path).
+        """
+        if history_file:
+            try:
+                return FileHistory(history_file)
+            except OSError:
+                pass
+        return InMemoryHistory()
+
     class DrozerCompleter(Completer):
         """
         Bridges prompt_toolkit's Completer interface to the existing cmd-style
@@ -193,7 +206,7 @@ class Cmd(cmd.Cmd):
         self.preloop()
 
         if has_prompt_toolkit:
-            history = FileHistory(self.history_file) if self.history_file else InMemoryHistory()
+            history = _create_history(self.history_file)
             self._pt_completer = DrozerCompleter(self)
             self._pt_session = PromptSession(history=history, key_bindings=_DROZER_KEY_BINDINGS)
             self._pt_history_stack = [self.history_file]
@@ -445,7 +458,7 @@ class Cmd(cmd.Cmd):
         else:
             self._pt_completer = _ModuleCompleter(completer)
 
-        new_history = FileHistory(history_file) if history_file else InMemoryHistory()
+        new_history = _create_history(history_file)
         self._pt_session = PromptSession(history=new_history, key_bindings=_DROZER_KEY_BINDINGS)
 
     def pop_completer(self):
@@ -459,7 +472,7 @@ class Cmd(cmd.Cmd):
         self._pt_history_stack.pop()
 
         prev_history_file = self._pt_history_stack[-1] if self._pt_history_stack else None
-        history = FileHistory(prev_history_file) if prev_history_file else InMemoryHistory()
+        history = _create_history(prev_history_file)
         self._pt_session = PromptSession(history=history, key_bindings=_DROZER_KEY_BINDINGS)
 
     def complete(self, text, state):
