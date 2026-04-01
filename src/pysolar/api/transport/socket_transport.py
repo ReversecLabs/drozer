@@ -24,6 +24,8 @@ class SocketTransport(Transport):
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE  # TOFU handles trust via fingerprint callback
             context.minimum_version = ssl.TLSVersion.TLSv1_2
+            # Include AES-CBC ciphers for Android API 16-19 which lack GCM support
+            context.set_ciphers("DEFAULT:!aNULL:!eNULL:!MD5")
 
             if self.__debug:
                 sys.stderr.write("[TLS] Connecting to %s:%d\n" % endpoint)
