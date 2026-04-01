@@ -20,16 +20,22 @@ def delete(arguments, resource):
 
 def get_socket(arguments):
     sock = socket()
-    
+
+    if hasattr(arguments, 'push_server') and arguments.push_server != None:
+        target = arguments.push_server
+    else:
+        target = arguments.server
+    hostname = target[0] if isinstance(target, tuple) else target.split(":")[0] if target else "127.0.0.1"
+
     if arguments.ssl:
-        provider = Provider()
-        sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=provider.ca_certificate_path())
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
+        sock = context.wrap_socket(sock, server_hostname=hostname)
 
     sock.settimeout(5.0)
-    if hasattr(arguments, 'push_server') and arguments.push_server != None:
-        sock.connect(arguments.push_server)
-    else:
-        sock.connect(arguments.server)
+    sock.connect(target)
     
     return sock
     
