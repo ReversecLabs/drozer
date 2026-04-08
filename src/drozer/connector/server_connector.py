@@ -1,4 +1,5 @@
 import socket
+import traceback
 
 from pysolar.api.builders import SystemRequestFactory
 from pysolar.api.transport import SocketTransport
@@ -20,9 +21,13 @@ class ServerConnector(SocketTransport):
         try:
             SocketTransport.__init__(self, arguments, trust_callback)
         except socket.error as e:
+            if getattr(arguments, 'debug', False):
+                traceback.print_exc()
             print("Socket Error")
             raise ConnectionError(e)
         except socket.timeout as e:
+            if getattr(arguments, 'debug', False):
+                traceback.print_exc()
             print("Other Socket Timout")
             raise ConnectionError(e)
 
@@ -35,7 +40,7 @@ class ServerConnector(SocketTransport):
             datum = self.sendAndReceive(SystemRequestFactory.listDevices())
             return datum
         except RuntimeError as e:
-            if e.message == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
+            if str(e) == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
                 raise ConnectionError(e)
             else:
                 raise
@@ -48,7 +53,7 @@ class ServerConnector(SocketTransport):
         try:
             return self.sendAndReceive(SystemRequestFactory.listSessions())
         except RuntimeError as e:
-            if e.message == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
+            if str(e) == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
                 raise ConnectionError(e)
             else:
                 raise
@@ -61,7 +66,7 @@ class ServerConnector(SocketTransport):
         try:
             return self.sendAndReceive(SystemRequestFactory.startSession(device_id).setPassword(password))
         except RuntimeError as e:
-            if e.message == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
+            if str(e) == 'Received an empty response from the Agent. This normally means the remote service has crashed.':
                 raise ConnectionError(e)
             else:
                 raise

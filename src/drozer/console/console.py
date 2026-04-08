@@ -31,26 +31,53 @@ class Console(cli.Base):
         
         self._parser.add_argument("device", default=None, nargs='?', help="the unique identifier of the Agent to connect to")
         self._parser.add_argument("--server", default=None, metavar="HOST[:PORT]", help="specify the address and port of the drozer server")
-        self._parser.add_argument("--ssl", action="store_true", default=False, help="connect with SSL")
+        self._parser.add_argument("--ssl", action="store_true", default=False, help="connect with TLS (this is the default)")
+        self._parser.add_argument("--no-ssl", action="store_true", default=False, help="disable TLS and connect with plain TCP")
         self._parser.add_argument("--accept-certificate", action="store_true", default=False, help="accept any SSL certificate with a valid trust chain")
+        self._parser.add_argument("--verify-tls", action="store_true", default=False, help="manually verify the TLS certificate fingerprint on first connect")
         self._parser.add_argument("--debug", action="store_true", default=False, help="enable debug mode")
         self._parser.add_argument("--no-color", action="store_true", default=False, help="disable syntax highlighting in drozer output")
-        self._parser.add_argument("--password", action="store_true", default=False, help="the agent requires a password")
+        self._parser.add_argument("--password", nargs="?", const=True, default=None, metavar="PASSWORD",
+                                  help="provide a password (interactive prompt if no value given)")
+        self._parser.add_argument("--no-password", action="store_true", default=False, help="connect without a password prompt")
         self._parser.add_argument("-c", "--command", default=None, dest="onecmd", help="specify a single command to run in the session")
         self._parser.add_argument("-f", "--file", default=[], help="source file", nargs="*")
         
         self.__accept_certificate = False
+        self.__verify_tls = False
+        self.__tls_security_phrase = None
         self.__server = None
         
     def do_connect(self, arguments):
         """starts a new session with a device"""
-        if arguments.password:
+
+        # Password handling: default is interactive prompt (user can just hit Enter
+        # for no password). --password VALUE provides it inline. --no-password skips.
+        if arguments.no_password:
+            password = None
+        elif arguments.password is True:
+            # --password with no value: interactive prompt
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-
                 password = getpass.getpass()
+        elif arguments.password is not None:
+            # --password VALUE: inline
+            password = arguments.password
         else:
-            password = None
+            # No flag at all: prompt (Enter for no password)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                password = getpass.getpass("Password (leave blank if none): ")
+            if password == "":
+                password = None
+
+        # TLS is the default. --no-ssl is required to explicitly disable it.
+        if not arguments.no_ssl:
+            arguments.ssl = True
+
+        if not arguments.ssl:
+            sys.stderr.write("Warning: connecting without TLS. Traffic is unencrypted.\n\n")
+
         server = self.__getServerConnector(arguments)
         device = self.__get_device(arguments)
         response = server.startSession(device, password)
@@ -63,6 +90,8 @@ class Console(cli.Base):
                     session = DebugSession(server, session_id, arguments)
                 else:
                     session = Session(server, session_id, arguments)
+                if self.__tls_security_phrase:
+                    session.intro += "\nTLS security phrase: %s  -- verify this matches the agent" % self.__tls_security_phrase
                 if len(arguments.file) > 0:
                     print("Length is above 0")
                     session.do_load(" ".join(arguments.file))
@@ -145,8 +174,8 @@ class Console(cli.Base):
             sys.stderr.write(" - is the drozer Server running?\n")
             sys.stderr.write(" - have you set up appropriate adb port forwards?\n")
             sys.stderr.write(" - have you specified the correct hostname and port with --server?\n")
-            sys.stderr.write(" - is the server protected with SSL (add an --ssl switch)?\n")
-            sys.stderr.write(" - is the agent protected with a password (add a --password switch)?\n\n")
+            sys.stderr.write(" - is the agent not using TLS? (use --no-ssl only if you're sure)\n")
+            sys.stderr.write(" - is the agent protected with a password?\n\n")
             if(hasattr(throwable, 'cause')):
                 sys.stderr.write("Debug Information:\n")
                 sys.stderr.write("%s\n\n" % str(throwable.cause))
@@ -157,10 +186,12 @@ class Console(cli.Base):
     
     def parse_arguments(self, parser, arguments):
         parsed_arguments = parser.parse_args(arguments)
-        
+
         if parsed_arguments.accept_certificate:
             self.__accept_certificate = True
-        
+        if parsed_arguments.verify_tls:
+            self.__verify_tls = True
+
         return parsed_arguments
 
     def __get_device(self, arguments):
@@ -201,37 +232,62 @@ class Console(cli.Base):
         Callback, invoked when connecting to a server with SSL, to manage the trust
         relationship with that server based on SSL certificates.
         """
-        
+
         trust_status = provider.trusted(certificate, peer)
-            
-        if trust_status < 0:
-            if self.__accept_certificate:
-                """
-                If the --accept-certificate option indicates we should blindly accept
-                this certificate, carry on.
-                """
-                return
-            
-            print("drozer has established an SSL Connection to %s:%d." % peer)
-            print("The server has provided an SSL Certificate with the SHA-1 Fingerprint:")
-            print("%s\n" % provider.digest(certificate))
-            
-            if trust_status == -2:
-                print("WARNING: this host has previously used a certificate with the fingerprint:")
-                print("%s\n" % provider.trusted_certificate_for(peer))
-            
-            while(True):
-                print("Do you want to accept this certificate? [yna] ")
-                
+        phrase = provider.security_phrase(certificate)
+
+        if trust_status == 0:
+            # Known and matches — trusted, nothing to do.
+            self.__tls_security_phrase = phrase
+            return
+
+        if trust_status == -2:
+            # Certificate CHANGED — always warn, possible MITM.
+            sys.stderr.write("\n!! WARNING: TLS certificate has CHANGED for %s:%d !!\n" % peer)
+            sys.stderr.write("!! This could indicate a man-in-the-middle attack. !!\n\n")
+            sys.stderr.write("Previous fingerprint: %s\n" % provider.trusted_certificate_for(peer))
+            sys.stderr.write("Current fingerprint:  %s\n" % provider.digest(certificate))
+            if phrase:
+                sys.stderr.write("Current security phrase: %s\n" % phrase)
+            sys.stderr.write("\nVerify this matches the phrase shown on the device.\n")
+
+            while True:
+                sys.stderr.write("Accept the new certificate? [yna] ")
                 selection = input().strip().lower()
-                
                 if selection == "n":
                     sys.exit(-2)
                 elif selection == "y":
-                    print("")
-                    break
+                    self.__tls_security_phrase = phrase
+                    return
+                elif selection == "a":
+                    provider.trust(certificate, peer)
+                    self.__tls_security_phrase = phrase
+                    return
+
+        # trust_status == -1: new/unknown certificate
+        if self.__verify_tls:
+            # Manual verification mode — interactive prompt.
+            print("\ndrozer has established an SSL Connection to %s:%d." % peer)
+            print("The server has provided an SSL Certificate with the SHA-256 Fingerprint:")
+            print("%s" % provider.digest(certificate))
+            if phrase:
+                print("Security phrase: %s" % phrase)
+            print("\nVerify this matches the phrase shown on the device.")
+
+            while True:
+                print("Do you want to accept this certificate? [yna] ")
+                selection = input().strip().lower()
+                if selection == "n":
+                    sys.exit(-2)
+                elif selection == "y":
+                    self.__tls_security_phrase = phrase
+                    return
                 elif selection == "a":
                     print("Adding certificate to known hosts.\n")
                     provider.trust(certificate, peer)
-                    break
-                    
+                    self.__tls_security_phrase = phrase
+                    return
+        else:
+            # Default: auto-accept and remember. Print phrase after session starts.
+            provider.trust(certificate, peer)
+            self.__tls_security_phrase = phrase

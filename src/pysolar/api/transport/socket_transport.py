@@ -1,5 +1,6 @@
 import socket
 import ssl
+import sys
 
 from pysolar.api import Frame
 from pysolar.api.transport.exceptions import ConnectionError
@@ -14,15 +15,41 @@ class SocketTransport(Transport):
         Transport.__init__(self)
         self.__socket = socket.socket()
 
+        self.__debug = getattr(arguments, 'debug', False)
+        endpoint = self.__getEndpoint(arguments)
+
         if arguments.ssl:
             provider = Provider()
-            self.__socket = ssl.wrap_socket(self.__socket, cert_reqs=ssl.CERT_REQUIRED,
-                                            ca_certs=provider.ca_certificate_path())
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE  # TOFU handles trust via fingerprint callback
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            # Include AES-CBC ciphers for Android API 16-19 which lack GCM support
+            context.set_ciphers("DEFAULT:!aNULL:!eNULL:!MD5")
+
+            if self.__debug:
+                sys.stderr.write("[TLS] Connecting to %s:%d\n" % endpoint)
+                sys.stderr.write("[TLS] Protocol: TLS_CLIENT, verify_mode: CERT_NONE, min_version: TLSv1_2\n")
+
+            self.__socket = context.wrap_socket(self.__socket, server_hostname=endpoint[0])
 
         self.setTimeout(90.0)
-        self.__socket.connect(self.__getEndpoint(arguments))
+
+        try:
+            self.__socket.connect(endpoint)
+        except ssl.SSLError as e:
+            if self.__debug:
+                sys.stderr.write("[TLS] Handshake failed during connect: %s\n" % e)
+            raise
 
         if arguments.ssl:
+            if self.__debug:
+                sys.stderr.write("[TLS] Handshake successful\n")
+                sys.stderr.write("[TLS] Protocol: %s, Cipher: %s\n" % (
+                    self.__socket.version(), self.__socket.cipher()))
+                cert_der = self.__socket.getpeercert(True)
+                sys.stderr.write("[TLS] Server cert DER length: %d bytes\n" % (len(cert_der) if cert_der else 0))
+
             trust_callback(provider, self.__socket.getpeercert(True), self.__socket.getpeername())
 
     def close(self):

@@ -81,7 +81,7 @@ class CA(object):
         Check whether the a key/certificate pair match.
         """
         
-        ctx = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
+        ctx = OpenSSL.SSL.Context(OpenSSL.SSL.TLS_METHOD)
         ctx.use_privatekey(key)
         ctx.use_certificate(certificate)
         

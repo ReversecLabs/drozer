@@ -58,10 +58,46 @@ class Provider(object):
     
     def digest(self, certificate):
         """
-        Calculate the SHA-1 digest of an X509 certificate.
+        Calculate the SHA-256 digest of an X509 certificate.
         """
-        
-        return OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, certificate).digest('sha1')
+
+        digest = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, certificate).digest('sha256')
+        return digest.decode('ascii') if isinstance(digest, bytes) else digest
+
+    def security_phrase(self, certificate):
+        """
+        Derive a human-readable security phrase from the certificate's SHA-256
+        fingerprint. Takes the first 6 bytes, interprets as 3 big-endian uint16
+        values, and maps each (mod wordlist size) to a word. Both the agent and
+        CLI compute this identically so the tester can compare them to detect MITM.
+        """
+        import hashlib
+
+        cert_der = certificate if isinstance(certificate, bytes) else certificate.encode()
+        digest_bytes = hashlib.sha256(cert_der).digest()
+
+        words = self._load_wordlist()
+        if not words:
+            return None
+
+        phrase_parts = []
+        for i in range(3):
+            val = (digest_bytes[i * 2] << 8) | digest_bytes[i * 2 + 1]
+            phrase_parts.append(words[val % len(words)])
+
+        return "-".join(phrase_parts)
+
+    def _load_wordlist(self):
+        """
+        Load the Orchard Street wordlist bundled with the package.
+        """
+
+        wordlist_path = os.path.join(os.path.dirname(__file__), "wordlist.txt")
+        try:
+            with open(wordlist_path, "r") as f:
+                return [line.strip() for line in f if line.strip()]
+        except IOError:
+            return None
     
     def get_keypair(self, cn, skip_default=False):
         """
