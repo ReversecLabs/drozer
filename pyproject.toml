@@ -46,3 +46,12 @@ pysolar = "src/pysolar"
 
 [tool.setuptools.dynamic]
 version = { attr = "drozer.__version__" }
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+# The package sources live under src/; expose them so the unit tests can be
+# run directly (without an editable install) via `pytest`.
+pythonpath = ["src"]
+testpaths = ["tests"]
