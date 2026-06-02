@@ -66,36 +66,20 @@ def md5sum(path):
     """
 
     try:
-        f = open(path, 'rb')
-        line = data = f.read()
-
-        while line != "":
-            line = f.read()
-
-            data += line
-
-        f.close()
-        return hashlib.md5(data).hexdigest()
+        with open(path, 'rb') as f:
+            return hashlib.md5(f.read()).hexdigest()
     except IOError:
         return None
 
 
 def sha1sum(path):
     """
-    Utility method to get the md5sum of a file on the filesystem
+    Utility method to get the sha1sum of a file on the filesystem
     """
 
     try:
-        f = open(path, 'rb')
-        line = data = f.read()
-
-        while line != "":
-            line = f.read()
-
-            data += line
-
-        f.close()
-        return hashlib.sha1(data).hexdigest()
+        with open(path, 'rb') as f:
+            return hashlib.sha1(f.read()).hexdigest()
     except IOError:
         return None
 
